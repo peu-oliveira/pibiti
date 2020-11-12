@@ -1,7 +1,6 @@
 # pibiti
-SPH fluids
 Arquivos modificados:
-/App/Render.cpp 
-/Graphics/render_particles.cpp 
-/Graphics/render_particles.h 
-/Graphics/render_shaders.cpp 
+/App/Render.cpp ;
+/Graphics/render_particles.cpp ;
+/Graphics/render_particles.h ;
+/Graphics/render_shaders.cpp ;
