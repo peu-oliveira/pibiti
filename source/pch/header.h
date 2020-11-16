@@ -1,10 +1,13 @@
 //  Precompiled Header
 #pragma once
 #define WIN32_LEAN_AND_MEAN
+#if defined(__WIN32__)
 #include <windows.h>
+#include <GL/wglew.h>
+#include<cutil.h>
+#endif
 
 #include <GL/glew.h>
-#include <GL/wglew.h>
 #include <GL/glut.h>
 #include<stdio.h>
 #include<iostream>
@@ -13,12 +16,11 @@
 #include <math.h>
 #include <vector>
 #include<chrono>
-#include<cutil.h>
 #include<cuda.h>
 #include <vector_functions.h>
 typedef unsigned int uint;
 
-#include "..\CUDA\Params.cuh"
+#include "../CUDA/Params.cuh"
 
 
 #include <tinyxml.h>
@@ -49,7 +51,11 @@ inline  float  length3(float4& a) {  return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);  
 
 static bool isKeyDown(int vKey)
 {
+#if defined(__WIN32__)
 	return	GetAsyncKeyState(vKey)!=0;
+#else
+    return false;
+#endif
 }
 
 //  ---  random  ---

@@ -1,6 +1,6 @@
 #include "header.h"
 #include "App.h"
-#include "..\CUDA\Params.cuh"
+#include "../CUDA/Params.cuh"
 
 
 
@@ -141,7 +141,9 @@ void App::togHue()	{
 //-----------------------------------------------------------------------------
 
 void App::KeyPressed(unsigned char k, int x, int y)
-{	switch (k)
+{	
+#if defined(__WIN32__)
+    switch (k)
 	{	case '\033':  exit(0);  break;
 		
 		case 'p':	bPaused = !bPaused;	break;
@@ -178,6 +180,7 @@ void App::KeyPressed(unsigned char k, int x, int y)
 		case '3':  if (timAvgCnt > 0)   timAvgCnt--;  break;	case '1':	if (barsScale > 0.f)  barsScale -= 1.f;  break;
 		case '4':  if (timAvgCnt < 20)  timAvgCnt++;  break;	case '2':	barsScale += 1.f;  break;
 	}
+#endif
 }
 
 void App::KeySpecial(int k, int x, int y)
@@ -230,10 +233,12 @@ void App::UpdateCamera()
 	Scene& sc = psys->scn;  Emitter& em = sc.emit[sc.ce];
 	for (int iter=0; iter<3; ++iter)
 	{
-		camPosLag += (sc.camPos - camPosLag) * inertia;
-		camRotLag += (sc.camRot - camRotLag) * inertia;
-		em.posLag += (em.pos - em.posLag) * inertia;
-		em.rotLag += (em.rot - em.rotLag) * inertia;
+        /*
+		 *camPosLag += (sc.camPos - camPosLag) * inertia;
+		 *camRotLag += (sc.camRot - camRotLag) * inertia;
+		 *em.posLag += (em.pos - em.posLag) * inertia;
+		 *em.rotLag += (em.rot - em.rotLag) * inertia;
+         */
 	}
 
 	glTranslatef(camPosLag.x, camPosLag.y, camPosLag.z);

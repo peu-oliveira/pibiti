@@ -44,14 +44,22 @@ template<class T> class Param : public ParamBase
 {
 private:
 	T value, *ptr;	 // pointer to value declared elsewhere
-	T default, min,max, width, step;
+	T vdefault, min,max, width, step;
 	float fpow,fpow1;  //log
 
 public:
 	Param(char *name, T min1,T max1,T step1, T* ptr1, float pow1 = 1.f, T val1 = -77) : ParamBase(name)
 	{
-		ptr = ptr1;  if (val1 != -77) {  value = default = val1;  *ptr = val1;  }  else  {  value = default = *ptr;  }
-		min = min1;  max = max1;  width = max-min;
+		ptr = ptr1;  
+        if (val1 != -77) {  
+            value = vdefault = val1;  
+            *ptr = val1;  
+        }  else  {  
+        value = vdefault = *ptr;  
+        }
+		min = min1;  
+        max = max1;  
+        width = max-min;
 		step = step1;  fpow = pow1;  fpow1 = 1.f/pow1;
 	}
 	virtual ~Param() {  }
@@ -73,7 +81,7 @@ public:
 	void Increment(float t) {  *ptr += step * t;	if (*ptr > max)  *ptr = max;	}
 	void Decrement(float t) {  *ptr -= step * t;	if (*ptr < min)  *ptr = min;	}
 
-	void Reset() { *ptr = default; }
+	void Reset() { *ptr = vdefault; }
 	bool IsList() { return false; }
 
 	void Write(ostream &stream) { stream << name << " " << *ptr << '\n'; }

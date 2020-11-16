@@ -1,7 +1,7 @@
 #pragma once
-#include "..\SPH\SPH.h"
-#include "..\Graphics\render_particles.h"
-#include "..\Graphics\paramgl.h"
+#include "../SPH/SPH.h"
+#include "../Graphics/render_particles.h"
+#include "../Graphics/paramgl.h"
 
 
 

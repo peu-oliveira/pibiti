@@ -1,10 +1,10 @@
 #include "header.h"
 
 #include "App.h"
-#include "..\SPH\SPH.h"
+#include "../SPH/SPH.h"
 #include<cuda.h>
 #include<cuda_runtime.h>
-#include<cutil.h>
+//#include<cutil.h>
 
 //  static vars
 int App::mx, App::my, App::buttons = 0, App::rendAq = 6;
@@ -56,7 +56,9 @@ void App::init()
 	initParams();
 
 	if (!bWindowed)	glutFullScreen();
+    #if defined(__WIN32__)
 	if (bVsyncOff)	wglSwapIntervalEXT(0);
+    #endif
 }
 
 #define  DEL(a)   if (a)  {  delete a;  a = NULL;  }
