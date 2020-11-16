@@ -11,24 +11,90 @@
 
 char *ParticleRenderer::vertexShader =
 STRING(
-	uniform float  pointRadius;  // point size in world space
-	uniform float  pointScale;   // scale to calculate size in pixels
+#version 330 core \n
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec2 aTexCoords;
+//uniform float  pointRadius;  // point size in world space
+//uniform float  pointScale;   // scale to calculate size in pixels
+out vec2 TexCoords;
 
-	void main()
-	{
+void main()
+{
 
-		// calculate window-space point size
-		vec3 posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
-		float dist = length(posEye);
-		gl_PointSize = pointRadius * (pointScale / dist);
+	// calculate window-space point size
+	/*vec3 posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
+	float dist = length(posEye);
+	gl_PointSize = pointRadius * (pointScale / dist);
 
-		gl_TexCoord[0] = gl_MultiTexCoord0;
-		gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
+	gl_TexCoord[0] = gl_MultiTexCoord0;
+	gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
 
-		gl_FrontColor = gl_Color;
-	}
+	gl_FrontColor = gl_Color;*/
+	TexCoords = aTexCoords;
+	gl_Position = vec4(aPos, 1.0);
+}
 );
 
+char *ParticleRenderer::GvertexShader =
+STRING(
+uniform sampler2D depth;
+uniform float  pointRadius;  // point size in world space
+uniform float  pointScale;   // scale to calculate size in pixels
+out vec3 aPos;
+
+
+void main()
+{
+	// calculate window-space point size
+	vec3 posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
+	float dist = length(posEye);
+	gl_PointSize = pointRadius * (pointScale / dist);
+
+	gl_TexCoord[0] = gl_MultiTexCoord0;
+	aPos = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
+
+	float sla = texture(depth, gl_TexCoord[0].xy).r;
+	vec4 temporario = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
+	gl_Position = temporario;
+
+	gl_FrontColor = gl_Color;
+}
+);
+
+char *ParticleRenderer::GfragmentShader =
+STRING(
+uniform float  fAmbient;   // factors
+uniform float  fDiffuse;
+uniform float  fPower;
+	//#version 330 core\n
+in vec3 aPos;
+//layout(location = 0) out float depthOut;
+//out float depthOut;
+out vec3 gPosition;
+out vec3 gNormal;
+out vec4 gAlbedoSpec;
+
+
+void main()
+{
+	const vec3 lightDir = vec3(0.577, 0.577, 0.577);
+	//float gdepth = texture(depth, gl_TexCoord[0].xy);
+	// calculate normal from texture coordinates
+	vec3 n;  n.xy = gl_TexCoord[0].xy * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+	float mag = dot(n.xy, n.xy);
+	if (mag > 1.0)  discard;   // don't draw outside circle
+	n.z = sqrt(1.0 - mag);
+
+	// calculate lighting
+	float diffuse = max(0.0, dot(lightDir, n));
+	//depth = gl_FragCoord.z;
+	//depthOut = gl_FragCoord.z;
+	
+	gNormal = n;
+	gPosition = aPos;
+	gAlbedoSpec = gl_Color*(fAmbient + fDiffuse * diffuse);
+}
+);
 
 #define HUE2RGB	\
 	"/*int ap[6] = const int[6](2,2,0,0,1,1);\
@@ -69,87 +135,155 @@ STRING(
 
 
 ///  Pixel shader  for rendering points as shaded spheres
-	
+
 char *ParticleRenderer::spherePixelShader[NumProg] = {
 
 STRING(		///  Diffuse
+#version 330 core\n
 
-	uniform float  fAmbient;   // factors
-	uniform float  fDiffuse;
-	uniform float  fPower;
+out vec4 FragColor;
+in vec2 TexCoords;
+uniform sampler2D depth;
+uniform sampler2D gPosition;
+uniform sampler2D gNormal;
+uniform sampler2D gAlbedoSpec;
 
-	float near = 10.0;
-	float far = 100.0;
+float dzdx(int n )
+{
+	vec2 x0 = vec2(TexCoords.x + (1.0 / 800.0) + (1.0 / 800.0)*n, TexCoords.y);
+	vec2 x1 = vec2(TexCoords.x - (1.0 / 800.0) + (1.0 / 800.0)*n, TexCoords.y);
+	float z0 = texture(depth, x0).r;
+	float z1 = texture(depth, x1).r;
+	return (z0-z1)/2.0;
+}
 
-	float LinearizeDepth(float depth)
-	{
-		float z = depth * 2.0 - 1.0; // back to NDC 
-		return (2.0 * near * far) / (far + near - z * (far - near));
+//	dz/dy
+float dzdy(int n )
+{
+	vec2 y0 = vec2(TexCoords.x, TexCoords.y + (1.0 / 600.0) + (1.0 / 600.0)*n);
+	vec2 y1 = vec2(TexCoords.x, TexCoords.y - (1.0 / 600.0) + (1.0 / 600.0)*n);
+	float z0 = texture(depth, y0).r;
+	float z1 = texture(depth, y1).r;
+	return (z0 - z1)/2.0;
+}
+float curvature_flow_step()
+{
+	int height = 600;
+	int width = 800;
+	float j = TexCoords.y * height;
+	float i = TexCoords.x * width;
+		//	unsigned offset = i + j * width;
+		//	float fd = *(depthBuf + offset);
+	float Z = texture(depth, TexCoords).r;
+				float dz_x = dzdx(0);
+				float dz_x0 = dzdx(-1);
+				float dz_x2 = dzdx(1);
+				float dz2x2 = (dz_x2 - dz_x0) / 2.0;
+
+				float dz_y = dzdy(0);
+				float dz_y0 = dzdy(-1);
+				float dz_y2 = dzdy(1);
+				float dz2y2 = (dz_y2 - dz_y0) / 2.0;
+
+				float Cx = i == 0 ? 0 : 2.f / (width * i);	//	TODO ?
+				float Cy = j == 0 ? 0 : 2.f / (height * j);	//	TODO ?
+				float D = Cy * Cy * dz_x * dz_x + Cx * Cx * dz_y * dz_y + Cx * Cx * Cy * Cy * Z * Z;
+				float inv_D32 = 1.f / pow(D, 1.5);
+
+				float ky = 4.f / height / height;
+				float kx = 4.f / width / width;
+				float dD_x = ky * pow(j, -2.f) * 2 * dz_x * dz2x2 +
+					kx * dz_y * dz_y * -2 * pow(i, -3.f) +
+					ky * pow(j, -2.f) * kx * (-2 * pow(i, -3.f) * Z * Z + pow(i, -2.f) * 2 * Z * dz_x);
+
+				float dD_y = kx * pow(i, -2.f) * 2 * dz_y * dz2y2 +
+					ky * dz_x * dz_x * -2 * pow(j, -3.f) +
+					kx * pow(i, -2.f) * ky * (-2 * pow(j, -3.f) * Z * Z + pow(j, -2.f) * 2 * Z * dz_y);
+
+				float Ex = 0.5 * dz_x * dD_x - dz2x2 * D;
+				float Ey = 0.5 * dz_y * dD_y - dz2y2 * D;
+
+				 return (Cy * Ex + Cx * Ey) * inv_D32 / 2.0;		
+}
+
+
+void main()
+{
+	vec3 fPos = texture(gPosition, vec2(TexCoords.x,TexCoords.y)).rgb;
+	vec3 fNormal = texture(gNormal, TexCoords).rgb;
+	vec4 fAlbedo = texture(gAlbedoSpec, TexCoords).rgba;
+	vec3 gdepth = texture(depth, TexCoords).rgb;
+	vec3 TexSum = vec3(0, 0, 0);
+	for (int i = 0; i < 10; i++) {
+		vec2 neighborTexCoord = vec2(TexCoords.x +( 1.0 / 800.0)*i, TexCoords.y + (1.0 / 600.0)*i);
+		vec3 gdepthN = texture(depth, neighborTexCoord).rgb;
+		TexSum = TexSum + gdepthN;
 	}
-	void main()
-	{
-		const vec3 lightDir = vec3(0.577, 0.577, 0.577);
+	vec3 average = vec3(TexSum / 10);
+//	float gdepth = texture(depth, gl_TexCoord[0].xy).rgb;
+/*	const vec3 lightDir = vec3(0.577, 0.577, 0.577);
+	//float gdepth = texture(depth, gl_TexCoord[0].xy);
+	// calculate normal from texture coordinates
+	vec3 n;  n.xy = TexCoords * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+	float mag = dot(n.xy, n.xy);
+	if (mag > 1.0)  discard;   // don't draw outside circle
+	n.z = sqrt(1.0 - mag);
+	
+	// calculate lighting
+	float diffuse = max(0.0, dot(lightDir, n));	
 
-		// calculate normal from texture coordinates
-		vec3 n;  n.xy = gl_TexCoord[0].xy * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
-		float mag = dot(n.xy, n.xy);
-		if (mag > 1.0)  discard;   // don't draw outside circle
-		n.z = sqrt(1.0 - mag);
-
-		// calculate lighting
-		float diffuse = max(0.0, dot(lightDir, n));
-
-		//gl_FragColor = gl_Color*(fAmbient + fDiffuse * diffuse);
-		//gl_FragColor = gl_Color*(fAmbient + fDiffuse * pow(diffuse, fPower));
-		float depth = LinearizeDepth(gl_FragCoord.z) / far;
-		gl_FragColor = vec4(vec3(depth), 1.0);
-	}
+	//gl_FragColor = gl_Color*(fAmbient + fDiffuse * diffuse);
+	//gl_FragColor = gl_Color*(fAmbient + fDiffuse * pow(diffuse, fPower));
+	//float depth = LinearizeDepth(gl_FragCoord.z) / far;*/
+	float FlowDepth = curvature_flow_step();
+	FragColor = vec4(fAlbedo)+vec4(FlowDepth);
+}
 
 
 ),HUE2RGB STRING(	///  Hue
 	uniform float fSteps = 0.f;
-	uniform float fHueDiff;
+uniform float fHueDiff;
 
-	void main()
-	{
-		vec3 n;  n.xy = gl_TexCoord[0].xy * vec2(2,-2) + vec2(-1,1);
-		float mag = dot(n, n);
-		if (mag > 1.0)  discard;   // circle
+void main()
+{
+	vec3 n;  n.xy = gl_TexCoord[0].xy * vec2(2,-2) + vec2(-1,1);
+	float mag = dot(n, n);
+	if (mag > 1.0)  discard;   // circle
 
-		// calculate lighting
-		const vec3 lightDir = vec3(0.577, 0.577, 0.577);
-		n.z = sqrt(1.0 - mag);
-		float diffuse = max(0.0, dot(lightDir, n));
+							   // calculate lighting
+	const vec3 lightDir = vec3(0.577, 0.577, 0.577);
+	n.z = sqrt(1.0 - mag);
+	float diffuse = max(0.0, dot(lightDir, n));
 
-		n.x = gl_Color.r;
-		if (fSteps > 0.f)	{	int i = n.x*fSteps;  n.x = i/fSteps;	}
-		float h = 0.83333f - n.x;
-		float s = 1.f;
-		if (h < 0.f)  {  s += h*6;  h = 0.f;  }
-		//gl_FragColor = hsv2rgb(vec3(h, s - gl_Color.g/*dye*/, 1.f));
+	n.x = gl_Color.r;
+	if (fSteps > 0.f) { int i = n.x*fSteps;  n.x = i / fSteps; }
+	float h = 0.83333f - n.x;
+	float s = 1.f;
+	if (h < 0.f) { s += h * 6;  h = 0.f; }
+	//gl_FragColor = hsv2rgb(vec3(h, s - gl_Color.g/*dye*/, 1.f));
 
-		gl_FragColor = hsv2rgb(vec3(h, s - gl_Color.g/*dye*/ - diffuse*fHueDiff, 1.f));
-	}
+	gl_FragColor = hsv2rgb(vec3(h, s - gl_Color.g/*dye*/ - diffuse*fHueDiff, 1.f));
+}
 
-)};
+) };
 
 
 char *ParticleRenderer::scalePixelShader =
 HUE2RGB STRING(		///  Hue Scale
 	uniform float fSteps = 0.f;
 
-	//uniform float  fBright;
-	//uniform float  fContrast;
+//uniform float  fBright;
+//uniform float  fContrast;
 
-	void main()
-	{
-		vec2 n;  n = gl_TexCoord[0].xy;
+void main()
+{
+	vec2 n;  n = gl_TexCoord[0].xy;
 
-		if (fSteps > 0.f)	{	int i = n.x*fSteps;  n.x = i/fSteps;	}
-		float h = 0.83333f - n.x;
-		float s = 1.f;
-		if (h < 0.f)  {  s += h*6;  h = 0.f;  }
-		gl_FragColor = hsv2rgb(vec3(h, s, 1.f));
-	}
+	if (fSteps > 0.f) { int i = n.x*fSteps;  n.x = i / fSteps; }
+	float h = 0.83333f - n.x;
+	float s = 1.f;
+	if (h < 0.f) { s += h * 6;  h = 0.f; }
+	gl_FragColor = hsv2rgb(vec3(h, s, 1.f));
+}
 
 );
