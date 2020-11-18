@@ -38,10 +38,36 @@ void ParticleRenderer::_drawPoints()
 		glDisableClientState(GL_COLOR_ARRAY); 
 	}
 }
-
 void ParticleRenderer::display()
 {
+	glEnable(GL_POINT_SPRITE_ARB);
+	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
+	glDepthMask(GL_TRUE);	glEnable(GL_DEPTH_TEST);
 
+	int i = m_nProg;
+	glUseProgram(m_program[i]);	//  pass vars
+	glUniform1f(m_uLocPScale[i], m_ParScale);
+	glUniform1f(m_uLocPRadius[i], m_ParRadius);
+	if (i == 0) {
+		glUniform1f(m_uLocDiffuse, m_fDiffuse);
+		glUniform1f(m_uLocAmbient, m_fAmbient);
+		glUniform1f(m_uLocPower, m_fPower);
+	}
+	else {
+		glUniform1f(m_uLocHueDiff, m_fHueDiff);
+		glUniform1f(m_uLocSteps, m_fSteps);
+		/*glUniform1f( m_uLocStepsS, m_fSteps );*/
+	}
+
+	glColor3f(1, 1, 1);
+	_drawPoints();
+
+	glUseProgram(0);
+	glDisable(GL_POINT_SPRITE_ARB);
+}
+void ParticleRenderer::display_CF()
+{
 	glEnable(GL_POINT_SPRITE_ARB);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
@@ -176,59 +202,7 @@ void ParticleRenderer::DepthBufUse()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	display();
-
-	/*glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-
-	glLoadIdentity();
-	gluOrtho2D(0, 1, 0, 1);
-	math_init();
-	glFlush();
-	glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, depth_buffer);
-	float fCFFactor = 0.01;
-	unsigned nIterCount = 20;
-	curvature_flow(depth_buffer, fCFFactor, width, height, nIterCount);
-
-	glEnable(GL_POINT_SPRITE_ARB);
-	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
-	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
-	glDepthMask(GL_TRUE);	glEnable(GL_DEPTH_TEST);
-
-	int i = m_nProg;
-	glUseProgram(m_program[i]);	//  pass vars
-	glUniform1f(m_uLocPScale[i], m_ParScale);
-	glUniform1f(m_uLocPRadius[i], m_ParRadius);
-	if (i == 0) {
-		glUniform1f(m_uLocDiffuse, m_fDiffuse);
-		glUniform1f(m_uLocAmbient, m_fAmbient);
-		glUniform1f(m_uLocPower, m_fPower);
-	}
-	else {
-		glUniform1f(m_uLocHueDiff, m_fHueDiff);
-		glUniform1f(m_uLocSteps, m_fSteps);
-		/*glUniform1f( m_uLocStepsS, m_fSteps );
-	}
-
-	glColor3f(1, 1, 1);
-//	glBegin(GL_POINTS);  int a = 0;
-	//	for (int i = 0; i < m_numParticles; ++i, a+=4)	glVertex3fv(&m_pos[a]);
-		//lEnd();
-/*	glBegin(GL_POINTS);
-	for (int j = 0; j < height; j++)
-		for (int i = 0; i < width; i++)
-		{
-			float fd = *(depth_buffer + (i + j * width));
-			if (fd > 0)
-			{
-				glVertex2f(i * 1.f / width, j * 1.f / height);
-			}
-		}
-	glEnd();
-//	glPopMatrix();
-	math_destroy();
-	glUseProgram(0);
-	glDisable(GL_POINT_SPRITE_ARB);*/
+	display_CF();
 }
 
 void ParticleRenderer::cubemap()
@@ -293,7 +267,7 @@ void ParticleRenderer::cubemap()
 }
 
 
-GLuint ParticleRenderer::_compileProgram(const char *vsource, const char *fsource, int atacch)
+GLuint ParticleRenderer::_compileProgram(const char *vsource, const char *fsource)
 {
 	GLuint vertexShader;
 	if (vsource)	{
@@ -309,12 +283,7 @@ GLuint ParticleRenderer::_compileProgram(const char *vsource, const char *fsourc
 
 	if (vsource)	glAttachShader(program, vertexShader);
 	glAttachShader(program, fragmentShader);
-	if (atacch == 1) {
-		glBindFragDataLocation(program, 0, "gPosition");
-		glBindFragDataLocation(program, 1, "gNormal");
-		glBindFragDataLocation(program, 2, "gAlbedoSpec");
-		cout << "foi" << endl;
-	}
+
 	glLinkProgram(program);
 
 	// check if program linked
@@ -328,19 +297,63 @@ GLuint ParticleRenderer::_compileProgram(const char *vsource, const char *fsourc
 	return program;
 }
 
+GLuint ParticleRenderer::_compileProgramA(const char *vsource, const char *fsource)
+{
+	GLuint vertexShader;
+	if (vsource) {
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertexShader, 1, &vsource, 0);
+		glCompileShader(vertexShader);
+	}
+
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fsource, 0);
+	glCompileShader(fragmentShader);
+
+	GLuint program = glCreateProgram();
+
+	if (vsource)	glAttachShader(program, vertexShader);
+	glAttachShader(program, fragmentShader);
+
+		glBindFragDataLocation(program, 0, "gPosition");
+		glBindFragDataLocation(program, 1, "gNormal");
+		glBindFragDataLocation(program, 2, "gAlbedoSpec");
+
+	glLinkProgram(program);
+
+	// check if program linked
+	GLint success = 0;
+	glGetProgramiv(program, GL_LINK_STATUS, &success);
+
+	if (!success) {
+		char temp[256];
+		glGetProgramInfoLog(program, 256, 0, temp);
+		printf("Failed to link program:\n%s\n", temp);
+		glDeleteProgram(program);	program = 0;
+	}
+	return program;
+}
 
 void ParticleRenderer::_initGL()
 {
-	m_scaleProg = _compileProgram(NULL, scalePixelShader,0);
-	gbufferProg = _compileProgram(GvertexShader, GfragmentShader,1);
+	m_scaleProg = _compileProgram(NULL, scalePixelShader);
+	gbufferProg = _compileProgramA(GvertexShader, GfragmentShader);
 	
 	for (int i=0; i<NumProg; i++)	{
-		m_program[i] = _compileProgram(vertexShader, spherePixelShader[i],0);
-	//	m_program[i] = _compileProgram(GvertexShader, GfragmentShader);
+		m_program[i] = _compileProgram(vertexShader, spherePixelShader[i]);
 
 		//  vars loc
 		m_uLocPScale[i]  = glGetUniformLocation(m_program[i], "pointScale");
 		m_uLocPRadius[i] = glGetUniformLocation(m_program[i], "pointRadius");	}
+	if (Pedro) {
+		for (int i = 0; i < NumProg; i++) {
+			m_program[i] = _compileProgram(vertexShader_Pedro, spherePixelShader_Pedro[i]);
+
+			//  vars loc
+			m_uLocPScale[i] = glGetUniformLocation(m_program[i], "pointScale");
+			m_uLocPRadius[i] = glGetUniformLocation(m_program[i], "pointRadius");
+		}
+	}
 
 	m_uLocHueDiff = glGetUniformLocation(m_program[1], "fHueDiff");
 	m_uLocDiffuse = glGetUniformLocation(m_program[0], "fDiffuse");

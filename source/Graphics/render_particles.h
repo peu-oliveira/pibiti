@@ -7,8 +7,9 @@ class ParticleRenderer
 {
 public:
 	ParticleRenderer();  ~ParticleRenderer();
-
+	bool Pedro=1;
 	void display();
+	void display_CF();
 	void createTexture();
 	void renderQuad();
 	void DepthBufUse();
@@ -26,7 +27,7 @@ protected:  // methods
 
 	void _initGL();
 	void _drawPoints();
-	GLuint _compileProgram(const char *vsource, const char *fsource, int atacch);
+	GLuint _compileProgram(const char *vsource, const char *fsource), _compileProgramA(const char *vsource, const char *fsource);
 
 protected:  // data
 public:
@@ -41,7 +42,9 @@ public:
 	GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 
 	static char *vertexShader;
+	static char *vertexShader_Pedro;
 	static char *spherePixelShader[NumProg];
+	static char *spherePixelShader_Pedro[NumProg];
 	static char *scalePixelShader;
 	static char *GvertexShader;
 	static char *GfragmentShader;
