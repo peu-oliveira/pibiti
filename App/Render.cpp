@@ -24,12 +24,17 @@ void App::Render()
 //	CUT_SAFE_CALL(cutStartTimer(timer[0]));
 	UpdateCamera();
   ///  Render
+	bool Pedro = 1;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
-	pParRend->DepthBufUse();
-	DrawBounds();
-	DrawCollider();
-//	pParRend->display();  // particles
-	RenderText();
+	if (Pedro) {
+		pParRend->DepthBufUse(); //Pedro
+	}
+	else {
+		DrawBounds();  //Padrao
+		DrawCollider();
+		pParRend->display();  // particles
+		RenderText();
+	}
 	glutSwapBuffers();
 	
 	//glutReportErrors();
