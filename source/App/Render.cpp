@@ -13,7 +13,9 @@ void App::Simulate()
 	fSimTime += psys->scn.params.timeStep;
 }
 
-
+void App::genTex() {
+	pParRend->createTexture();
+};
 ///  Render  ---------------------------------------------------------------------------------------------
 void App::Render()
 {
@@ -22,14 +24,17 @@ void App::Render()
 //	CUT_SAFE_CALL(cutStartTimer(timer[0]));
 	UpdateCamera();
   ///  Render
+	bool Pedro = 1;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
-
-	DrawBounds();
-	DrawCollider();
-
-	pParRend->display();  // particles
-
-	RenderText();
+	if (Pedro) {
+		pParRend->DepthBufUse(); //Pedro
+	}
+	else {
+		DrawBounds();  //Padrao
+		DrawCollider();
+		pParRend->display();  // particles
+		RenderText();
+	}
 	glutSwapBuffers();
 	
 	//glutReportErrors();
