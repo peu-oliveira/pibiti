@@ -10,14 +10,13 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-using namespace std;
 
 
 ///  base class for named parameter
 class ParamBase
 {
 protected:
-	string name;
+	std::string name;
 public:
 	ParamBase(char* name1) {  name = name1;  }
 	virtual ~ParamBase() {  }
@@ -68,7 +67,8 @@ public:
 	T SetValue(const T value)	{  *ptr = value;  }
 
 	string GetValueString()
-	{	ostringstream ost;	int p = 4;
+	{	
+		std::ostringstream ost;	int p = 4;
 		if (abs(*ptr) < 0.001f)	 p = 2;
 		if (abs(*ptr) > 9000.f)  p = 6;
 		ost << setprecision(p) << *ptr;  return ost.str();	}
@@ -150,7 +150,7 @@ public:
 
 protected:
 	bool active;
-	vector<ParamBase*> params;
-	map<string, ParamBase*> map;
+	std::vector<ParamBase*> params;
+	std::map<string, ParamBase*> map;
 	ParamIter cur;
 };
