@@ -1,10 +1,8 @@
 /*  SPH Kernel, Device code.  */
 #pragma once
-
 #include "cutil_math.h"
 #include "math_constants.h"
 #include "Params.cuh"
-
 
 typedef unsigned int uint;
 
@@ -28,7 +26,7 @@ __constant__ SimParams par;
 //----------------------------------------------------------------------------------------------------------------------------
 ///  Boundary Conditions
 //----------------------------------------------------------------------------------------------------------------------------
-
+#if false
 __device__ void boundary(float3& pos, float3& vel)
 {
 	//  world box
@@ -457,3 +455,4 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 	}
 	clr[si] = make_float4(color, 1.f);
 }
+#endif

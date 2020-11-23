@@ -309,6 +309,7 @@ __global__ void RadixPrefixSum()
 //! @param shift	 the shift (0 to 24) that we are using to obtain the correct 
 //!				  byte
 ////////////////////////////////////////////////////////////////////////////////
+
 __global__ void RadixAddOffsetsAndShuffle(KeyValuePair* pSrc, KeyValuePair* pDst, uint elements, uint elements_rounded_to_3072, int shift)
 {
 	// Read offsets from previous blocks
@@ -469,8 +470,5 @@ void RadixSort(KeyValuePair *pData0, KeyValuePair *pData1, uint elements, uint b
 		pData1 = pTemp;
    }
 }
-
 }
-
-
 #endif // #ifndef _RADIXSORT_KERNEL_H_

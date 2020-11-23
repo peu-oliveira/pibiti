@@ -26,7 +26,7 @@ __constant__ SimParams par;
 //----------------------------------------------------------------------------------------------------------------------------
 ///  Boundary Conditions
 //----------------------------------------------------------------------------------------------------------------------------
-
+#if false
 __device__ void boundary(float3& pos, float3& vel)
 {
 	//  world box
@@ -205,7 +205,7 @@ __global__ void integrateD(float4* newPos, float4* newVel, float4* oldPos, float
 //----------------------------------------------------------------------------------------------------------------------------
 ///  Compute SPH  Force
 //----------------------------------------------------------------------------------------------------------------------------
-
+#if false
 __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, float4* oldVel, 
 		float4* clr, float* pressure, float* density, float* dyeColor/**/,	uint2* particleHash,  uint* cellStart)
 {
@@ -455,3 +455,5 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 	}
 	clr[si] = make_float4(color, 1.f);
 }
+#endif
+#endif
