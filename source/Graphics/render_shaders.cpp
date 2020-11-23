@@ -163,8 +163,11 @@ STRING(		///  Diffuse
 uniform float  fAmbient;   // factors
 uniform float  fDiffuse;
 uniform float  fPower;
+uniform float  SCR_HEIGHT;
+uniform float  SCR_WIDTH;
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 Zvalue;
 in vec2 TexCoords;
 uniform sampler2D depth;
 uniform sampler2D gPosition;
@@ -174,8 +177,9 @@ vec3 currNorm = vec3(1);
 
 float dzdx(int n )
 {
-	vec2 x0 = vec2(TexCoords.x + (1.0 / 800.0) + (1.0 / 800.0)*n, TexCoords.y);
-	vec2 x1 = vec2(TexCoords.x - (1.0 / 800.0) + (1.0 / 800.0)*n, TexCoords.y);
+	if (TexCoords.y >= 1 || TexCoords.x >= 1 || TexCoords.y < 0 || TexCoords.x < 0) return 0;
+	vec2 x0 = vec2(TexCoords.x + (1.0 / SCR_WIDTH) + (1.0 / SCR_WIDTH)*n, TexCoords.y);
+	vec2 x1 = vec2(TexCoords.x - (1.0 / SCR_WIDTH) + (1.0 / SCR_WIDTH)*n, TexCoords.y);
 	float z0 = texture(depth, x0).r;
 	float z1 = texture(depth, x1).r;
 	return (z0-z1)/2.0;
@@ -184,16 +188,17 @@ float dzdx(int n )
 //	dz/dy
 float dzdy(int n )
 {
-	vec2 y0 = vec2(TexCoords.x, TexCoords.y + (1.0 / 600.0) + (1.0 / 600.0)*n);
-	vec2 y1 = vec2(TexCoords.x, TexCoords.y - (1.0 / 600.0) + (1.0 / 600.0)*n);
+	if (TexCoords.y >= 1 || TexCoords.x >= 1 || TexCoords.y < 0 || TexCoords.x < 0) return 0;
+	vec2 y0 = vec2(TexCoords.x, TexCoords.y + (1.0 / SCR_HEIGHT) + (1.0 / SCR_HEIGHT)*n);
+	vec2 y1 = vec2(TexCoords.x, TexCoords.y - (1.0 / SCR_HEIGHT) + (1.0 / SCR_HEIGHT)*n);
 	float z0 = texture(depth, y0).r;
 	float z1 = texture(depth, y1).r;
 	return (z0 - z1)/2.0;
 }
 float curvature_flow_step(float Z)
 {
-	int height = 600;
-	int width = 800;
+	float height = SCR_HEIGHT;
+	float  width = SCR_WIDTH;
 	float j = TexCoords.y * height;
 	float i = TexCoords.x * width;
 		//	unsigned offset = i + j * width;
@@ -248,7 +253,6 @@ void main()
 
 	float Z = texture(depth, TexCoords).r;
 	float FlowDepth = curvature_flow_step(Z);
-	for(int i =0; i<30;i++) FlowDepth = curvature_flow_step(FlowDepth);
 	/*
 	if (FlowDepth <= 0) {
 		FragColor = vec4(0);
@@ -265,6 +269,8 @@ void main()
 	// calculate lighting
 	float diffuse = max(0.0, dot(lightDir, currNorm));
 	
+	Zvalue = vec4(FlowDepth);
+
     if(FlowDepth>0) FragColor = fAlbedo*(fAmbient + fDiffuse * pow(diffuse, fPower));
 
 }

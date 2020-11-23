@@ -1,7 +1,9 @@
 #include "header.h"
 #include "curvatureflow.h"
 #include "render_particles.h"
+#include "stb_image.h"
 
+unsigned int cubemapTexture;
 bool isTexC=0;
 
 ParticleRenderer::ParticleRenderer() :
@@ -66,8 +68,9 @@ void ParticleRenderer::display()
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
 }
-void ParticleRenderer::display_CF()
+void ParticleRenderer::display_CF(bool FB)
 {
+	int SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH), SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	glEnable(GL_POINT_SPRITE_ARB);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
@@ -79,20 +82,33 @@ void ParticleRenderer::display_CF()
 	glUniform1i(glGetUniformLocation(m_program[i],"gPosition"),1);
 	glUniform1i(glGetUniformLocation(m_program[i], "gNormal"), 2);
 	glUniform1i(glGetUniformLocation(m_program[i], "gAlbedoSpec"), 3);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depth);
+
+	if (FB == 1) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depth);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+	}
+	else {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Zvalue);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+
 	glUniform1f( m_uLocPScale[i],  m_ParScale );
 	glUniform1f( m_uLocPRadius[i], m_ParRadius );
 	if (i==0)	{
 		glUniform1f( m_uLocDiffuse, m_fDiffuse );
 		glUniform1f( m_uLocAmbient, m_fAmbient );
-		glUniform1f( m_uLocPower,   m_fPower );  }
+		glUniform1f( m_uLocPower,   m_fPower ); 
+		glUniform1f(scrH,SCR_HEIGHT);
+		glUniform1f(scrW,SCR_WIDTH);
+	}
 	else  {
 		glUniform1f( m_uLocHueDiff, m_fHueDiff );
 		glUniform1f( m_uLocSteps, m_fSteps );
@@ -109,7 +125,7 @@ void ParticleRenderer::display_CF()
 void ParticleRenderer::createTexture()
 {
 	cout << "tex created" << endl;
-	int SCR_WIDTH = 800, SCR_HEIGHT = 600;
+	int SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH), SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	gBuffer;
 	glGenFramebuffers(1, &gBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -144,6 +160,24 @@ void ParticleRenderer::createTexture()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
 	glDrawBuffers(3, attachments);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenFramebuffers(1, &depthFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
+	glGenTextures(1, &Zvalue);
+	glBindTexture(GL_TEXTURE_2D, Zvalue);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, Zvalue, 0);
+	glGenTextures(1, &ColorMap);
+	glBindTexture(GL_TEXTURE_2D, ColorMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, ColorMap, 0);
+	glDrawBuffers(2, Dattachment);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void ParticleRenderer::renderQuad()
@@ -175,6 +209,23 @@ void ParticleRenderer::renderQuad()
 		glBindVertexArray(0);
 }
 
+void ParticleRenderer::drawCubemap()
+{
+		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	/*skyboxShader.use();
+	view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+	skyboxShader.setMat4("view", view);
+	skyboxShader.setMat4("projection", projection);
+	// skybox cube
+	glBindVertexArray(skyboxVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS); // set depth function back to default*/
+}
+
+
 void ParticleRenderer::DepthBufUse()
 {
 	if (isTexC == 0) {
@@ -200,10 +251,49 @@ void ParticleRenderer::DepthBufUse()
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	int nIter = 4;
+	bool isFB = 0;
+	for (int i = 0; i < nIter; i++) {
+		isFB = !isFB;
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if(isFB==1) glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
+		else glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+		display_CF(isFB);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	display_CF();
+	display_CF(0);
 }
+
+ /*unsigned int ParticleRenderer::loadCubemap(vector<std::string> faces)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrComponents;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}*/
 
 void ParticleRenderer::cubemap()
 {
@@ -262,7 +352,16 @@ void ParticleRenderer::cubemap()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-
+	vector<std::string> faces
+	{
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/PositiveX.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/NegativeX.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/PositiveY.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/NegativeY.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/PositiveZ.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/NegativeZ.png"),
+	};
+	//cubemapTexture = loadCubemap(faces);
 
 }
 
@@ -355,6 +454,8 @@ void ParticleRenderer::_initGL()
 		}
 	}
 
+	scrH = glGetUniformLocation(m_program[0], "SCR_HEIGHT");
+	scrW = glGetUniformLocation(m_program[0], "SCR_WIDTH");
 	m_uLocHueDiff = glGetUniformLocation(m_program[1], "fHueDiff");
 	m_uLocDiffuse = glGetUniformLocation(m_program[0], "fDiffuse");
 	m_uLocAmbient = glGetUniformLocation(m_program[0], "fAmbient");
