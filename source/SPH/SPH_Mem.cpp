@@ -1,8 +1,8 @@
 #include "header.h"
 
-#include "..\SPH\SPH.h"
-#include "..\CUDA\System.cuh"
-#include "..\CUDA\radixsort.cuh"
+#include "../SPH/SPH.h"
+#include "../CUDA/System.cuh"
+#include "../CUDA/radixsort.cuh"
 #include <cutil.h>
 
 

@@ -139,9 +139,11 @@ bool ParamListGL::Motion(int x, int y)
 void ParamListGL::Special(int key, int /*x*/, int /*y*/)
 {
 	float t = 1.f;	// modifiers
+	#if defined(__WIN32__) 
 	if (isKeyDown(VK_CONTROL))	t *= 4.f;
 	if (isKeyDown(VK_SHIFT))	t *= 0.1f;
 	//if (isKeyDown(VK_MENU))	t *= 0.1f;
+	#endif
 	
 	switch (key)
 	{

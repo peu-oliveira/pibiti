@@ -1,7 +1,7 @@
 #include "header.h"
 
-#include "..\SPH\SPH.h"
-#include "..\App\App.h"
+#include "../SPH/SPH.h"
+#include "../App/App.h"
 
 
 
@@ -38,8 +38,8 @@ void cSPH::Reset(int type)
 			hPos[i].z = wMin.z + wSize.z*frand();	hPos[i].w = 1.f;  hVel[i] = vel0;
 		}
 	else  {		//  volume
-		#define rst(a)		pos.##a = imin.##a;
-		#define Inc(a)		pos.##a += spc;  if (pos.##a >= imax.##a)
+		#define rst(a)		pos.a = imin.a;
+		#define Inc(a)		pos.a += spc;  if (pos.a >= imax.a)
 		rst(x)  rst(y)  rst(z)  pos.w = 1;
 		#define Inc3(a,b,c)		Inc(a) {  rst(a)  Inc(b) {  rst(b)  Inc(c) rst(c)  }  }
 		#define INC			switch (scn.initLast)  {  default:\
@@ -64,7 +64,8 @@ void cSPH::Reset(int type)
 
 			while (i < p.numParticles)
 			{
-				if (length3(pos-cp) > p.collR || p.rotType > 0)  // outside collider
+				float3 dif = pos-cp;
+				if (length3(dif) > p.collR || p.rotType > 0)  // outside collider
 				if ( p.bndType == BND_BOX || scn.initType >= 9/**/ || p.bndType == BND_CYL_YZ || 
 					(p.bndType == BND_CYL_Y && sqrt(pos.x*pos.x+pos.z*pos.z) <  imax.x) ||
 					(p.bndType == BND_CYL_Z && sqrt(pos.x*pos.x+pos.y*pos.y) < -imin.y) ||

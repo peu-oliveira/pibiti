@@ -1,6 +1,6 @@
 #include "header.h"
 #include "App.h"
-#include "..\SPH\SPH.h"
+#include "../SPH/SPH.h"
 
 
 

@@ -10,6 +10,7 @@ Timer::Timer()
 	iFR = 0;  FR = 0.;
 	
 	LARGE_INTEGER FQ;
+	#if defined(__WIN32__)
 	if (QueryPerformanceFrequency( &FQ ))
 		fq = double( FQ.QuadPart );
 	else	printf("QueryPerformanceFrequency Error !\n");
@@ -20,12 +21,15 @@ Timer::Timer()
 	t = cc / fq;
 	st = t;  st1 = t;
 
+	#endif
 	printf("CPU Freq = %7.4f GHz\n\n", fq*0.000000001);
 }
 
 bool Timer::update(bool updFR)
 {
+	#if defined(__WIN32__)
 	if (!QueryPerformanceCounter( &CC ))	return true;
+
 	cc = double( CC.QuadPart );
 	t = cc / fq;
 	
@@ -50,5 +54,6 @@ bool Timer::update(bool updFR)
 
 		st1 = t;
 	}
+	#endif
 	return true;
 }

@@ -1,8 +1,8 @@
 #include "header.h"
 
-#include "..\SPH\SPH.h"
-#include "..\CUDA\System.cuh"
-#include "..\App\App.h"
+#include "../SPH/SPH.h"
+#include "../CUDA/System.cuh"
+#include "../App/App.h"
 
 
 
