@@ -33,22 +33,10 @@ STRING(
 #version 330 core \n
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec2 aTexCoords;
-//uniform float  pointRadius;  // point size in world space
-//uniform float  pointScale;   // scale to calculate size in pixels
 out vec2 TexCoords;
 
 void main()
 {
-
-	// calculate window-space point size
-	/*vec3 posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
-	float dist = length(posEye);
-	gl_PointSize = pointRadius * (pointScale / dist);
-
-	gl_TexCoord[0] = gl_MultiTexCoord0;
-	gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
-
-	gl_FrontColor = gl_Color;*/
 	TexCoords = aTexCoords;
 	gl_Position = vec4(aPos, 1.0);
 }
@@ -60,12 +48,13 @@ uniform sampler2D depth;
 uniform float  pointRadius;  // point size in world space
 uniform float  pointScale;   // scale to calculate size in pixels
 out vec3 aPos;
+out vec3 posEye;
 
 
 void main()
 {
 	// calculate window-space point size
-	vec3 posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
+	posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
 	float dist = length(posEye);
 	gl_PointSize = pointRadius * (pointScale / dist);
 
@@ -80,15 +69,38 @@ void main()
 }
 );
 
+char *ParticleRenderer::CubemapVertexShader =
+STRING(
+	out vec3 TexCoords;
+void main()
+{
+	TexCoords = gl_Vertex.xyz;
+	mat4 MVmatrix = mat4(mat3(gl_ModelViewMatrix));
+	vec4 temporario = gl_ProjectionMatrix * MVmatrix * vec4(gl_Vertex.xyz, 1.0);
+	gl_Position = vec4(temporario.xyww);
+}
+);
+
+char *ParticleRenderer::CubemapFragmentShader =
+STRING(
+
+	in vec3 TexCoords;
+uniform samplerCube skybox;
+out vec4 FragColor;
+	void main()
+{
+		FragColor = texture(skybox, TexCoords);
+}
+);
+
 char *ParticleRenderer::GfragmentShader =
 STRING(
 uniform float  fAmbient;   // factors
 uniform float  fDiffuse;
 uniform float  fPower;
-	//#version 330 core\n
+
 in vec3 aPos;
-//layout(location = 0) out float depthOut;
-//out float depthOut;
+in vec3 posEye;
 out vec3 gPosition;
 out vec3 gNormal;
 out vec4 gAlbedoSpec;
@@ -97,7 +109,6 @@ out vec4 gAlbedoSpec;
 void main()
 {
 	const vec3 lightDir = vec3(0.577, 0.577, 0.577);
-	//float gdepth = texture(depth, gl_TexCoord[0].xy);
 	// calculate normal from texture coordinates
 	vec3 n;  n.xy = gl_TexCoord[0].xy * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
 	float mag = dot(n.xy, n.xy);
@@ -106,11 +117,9 @@ void main()
 
 	// calculate lighting
 	float diffuse = max(0.0, dot(lightDir, n));
-	//depth = gl_FragCoord.z;
-	//depthOut = gl_FragCoord.z;
 	
 	gNormal = n;
-	gPosition = aPos;
+	gPosition = normalize(aPos - posEye);
 	gAlbedoSpec = gl_Color;// *(fAmbient + fDiffuse * diffuse);
 }
 );
@@ -173,6 +182,7 @@ uniform sampler2D depth;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
+uniform samplerCube skybox;
 vec3 currNorm = vec3(1);
 
 float dzdx(int n )
@@ -201,8 +211,7 @@ float curvature_flow_step(float Z)
 	float  width = SCR_WIDTH;
 	float j = TexCoords.y * height;
 	float i = TexCoords.x * width;
-		//	unsigned offset = i + j * width;
-		//	float fd = *(depthBuf + offset);
+
 	if (Z > 0) {
 		float dz_x = dzdx(0);
 		float dz_x0 = dzdx(-1);
@@ -214,8 +223,8 @@ float curvature_flow_step(float Z)
 		float dz_y2 = dzdy(1);
 		float dz2y2 = (dz_y2 - dz_y0) / 2.0;
 
-		float Cx = i == 0 ? 0 : 2.f / (width * i);	//	TODO ?
-		float Cy = j == 0 ? 0 : 2.f / (height * j);	//	TODO ?
+		float Cx = i == 0 ? 0 : 2.f / (width * i);	
+		float Cy = j == 0 ? 0 : 2.f / (height * j);	
 		float D = Cy * Cy * dz_x * dz_x + Cx * Cx * dz_y * dz_y + Cx * Cx * Cy * Cy * Z * Z;
 		float inv_D32 = 1.f / pow(D, 1.5);
 
@@ -253,12 +262,7 @@ void main()
 
 	float Z = texture(depth, TexCoords).r;
 	float FlowDepth = curvature_flow_step(Z);
-	/*
-	if (FlowDepth <= 0) {
-		FragColor = vec4(0);
-	}
-	else FragColor = vec4(fAlbedo);*/
-
+	Zvalue = vec4(FlowDepth);
 
 	const vec3 lightDir = vec3(0.577, 0.577, 0.577);
 
@@ -268,11 +272,14 @@ void main()
 
 	// calculate lighting
 	float diffuse = max(0.0, dot(lightDir, currNorm));
-	
-	Zvalue = vec4(FlowDepth);
+	float ratio = 1.00 / 1.52;
+	vec3 R = refract(fPos, normalize(currNorm), ratio);
 
-    if(FlowDepth>0) FragColor = fAlbedo*(fAmbient + fDiffuse * pow(diffuse, fPower));
-
+  //  if(FlowDepth>0) FragColor = fAlbedo*(fAmbient + fDiffuse * pow(diffuse, fPower));
+	gl_FragDepth = FlowDepth;
+	if(Z<1)	FragColor = vec4(texture(skybox, R).rgb, 1.0);
+	else FragColor = vec4(0);
+	//FragColor = vec4(Z);
 }
 
 

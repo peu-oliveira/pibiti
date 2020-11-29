@@ -1,6 +1,7 @@
 #include "header.h"
 #include "curvatureflow.h"
 #include "render_particles.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 unsigned int cubemapTexture;
@@ -70,11 +71,12 @@ void ParticleRenderer::display()
 }
 void ParticleRenderer::display_CF(bool FB)
 {
-	int SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH), SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
+	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
+	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	glEnable(GL_POINT_SPRITE_ARB);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
-	glDepthMask(GL_TRUE);	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE); glEnable(GL_DEPTH_TEST);
 
 	int i = m_nProg;
 	glUseProgram(m_program[i]);	//  pass vars
@@ -82,23 +84,24 @@ void ParticleRenderer::display_CF(bool FB)
 	glUniform1i(glGetUniformLocation(m_program[i],"gPosition"),1);
 	glUniform1i(glGetUniformLocation(m_program[i], "gNormal"), 2);
 	glUniform1i(glGetUniformLocation(m_program[i], "gAlbedoSpec"), 3);
+	glUniform1i(glGetUniformLocation(m_program[i], "skybox"), 4);
 
 	if (FB == 1) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 	}
 	else {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Zvalue);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 
 	glUniform1f( m_uLocPScale[i],  m_ParScale );
 	glUniform1f( m_uLocPRadius[i], m_ParRadius );
@@ -114,8 +117,7 @@ void ParticleRenderer::display_CF(bool FB)
 		glUniform1f( m_uLocSteps, m_fSteps );
 		/*glUniform1f( m_uLocStepsS, m_fSteps );*/  }
 	
-	glColor3f(1, 1, 1);
-	//_drawPoints();
+	//glColor3f(1, 1, 1);
 	renderQuad();
 
 	glUseProgram(0);
@@ -125,7 +127,8 @@ void ParticleRenderer::display_CF(bool FB)
 void ParticleRenderer::createTexture()
 {
 	cout << "tex created" << endl;
-	int SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH), SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
+	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
+	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	gBuffer;
 	glGenFramebuffers(1, &gBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -177,7 +180,6 @@ void ParticleRenderer::createTexture()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, ColorMap, 0);
 	glDrawBuffers(2, Dattachment);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 }
 
 void ParticleRenderer::renderQuad()
@@ -211,12 +213,8 @@ void ParticleRenderer::renderQuad()
 
 void ParticleRenderer::drawCubemap()
 {
-		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-	/*skyboxShader.use();
-	view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
-	skyboxShader.setMat4("view", view);
-	skyboxShader.setMat4("projection", projection);
-	// skybox cube
+	glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	glUseProgram(SkyboxProg);
 	glBindVertexArray(skyboxVAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
@@ -229,6 +227,7 @@ void ParticleRenderer::drawCubemap()
 void ParticleRenderer::DepthBufUse()
 {
 	if (isTexC == 0) {
+		cubemap();
 		createTexture();
 		isTexC = 1;
 	}
@@ -246,54 +245,28 @@ void ParticleRenderer::DepthBufUse()
 	glUniform1f(gm_uLocAmbient, m_fAmbient);
 	glUniform1f(gm_uLocPower, m_fPower);
 
-	glColor3f(1, 1, 1);
+	//glColor3f(1, 1, 1);
 	_drawPoints();
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
+	//drawCubemap();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	int nIter = 4;
-	bool isFB = 0;
+	int nIter = 5;
+	bool isFB = 1;
+	//glDepthMask(GL_FALSE);
 	for (int i = 0; i < nIter; i++) {
-		isFB = !isFB;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		if(isFB==1) glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
 		else glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 		display_CF(isFB);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		isFB = !isFB;
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	display_CF(0);
+	//glDepthMask(GL_TRUE);
+	display_CF(isFB);
+	drawCubemap();
 }
-
- /*unsigned int ParticleRenderer::loadCubemap(vector<std::string> faces)
-{
-	unsigned int textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-	int width, height, nrComponents;
-	for (unsigned int i = 0; i < faces.size(); i++)
-	{
-		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			stbi_image_free(data);
-		}
-		else
-		{
-			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-			stbi_image_free(data);
-		}
-	}
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	return textureID;
-}*/
 
 void ParticleRenderer::cubemap()
 {
@@ -343,7 +316,7 @@ void ParticleRenderer::cubemap()
 	};
 
 	// skybox VAO
-	unsigned int skyboxVAO, skyboxVBO;
+	unsigned int skyboxVBO;
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);
 	glBindVertexArray(skyboxVAO);
@@ -354,14 +327,39 @@ void ParticleRenderer::cubemap()
 
 	vector<std::string> faces
 	{
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/PositiveX.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/NegativeX.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/PositiveY.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/NegativeY.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/PositiveZ.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/NegativeZ.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/px.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/nx.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/py.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/ny.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/pz.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/nz.png"),
 	};
-	//cubemapTexture = loadCubemap(faces);
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrComponents;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	
+	cubemapTexture = textureID;
 
 }
 
@@ -437,6 +435,7 @@ void ParticleRenderer::_initGL()
 {
 	m_scaleProg = _compileProgram(NULL, scalePixelShader);
 	gbufferProg = _compileProgramA(GvertexShader, GfragmentShader);
+	SkyboxProg = _compileProgram(CubemapVertexShader, CubemapFragmentShader);
 	
 	for (int i=0; i<NumProg; i++)	{
 		m_program[i] = _compileProgram(vertexShader, spherePixelShader[i]);
