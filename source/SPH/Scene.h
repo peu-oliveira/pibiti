@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\CUDA\Params.cuh"
+#include "../CUDA/Params.cuh"
 
 
 

@@ -10,14 +10,13 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-using namespace std;
 
 
 ///  base class for named parameter
 class ParamBase
 {
 protected:
-	string name;
+	std::string name;
 public:
 	ParamBase(char* name1) {  name = name1;  }
 	virtual ~ParamBase() {  }
@@ -44,14 +43,22 @@ template<class T> class Param : public ParamBase
 {
 private:
 	T value, *ptr;	 // pointer to value declared elsewhere
-	T default, min,max, width, step;
+	T vdefault, min,max, width, step;
 	float fpow,fpow1;  //log
 
 public:
 	Param(char *name, T min1,T max1,T step1, T* ptr1, float pow1 = 1.f, T val1 = -77) : ParamBase(name)
 	{
-		ptr = ptr1;  if (val1 != -77) {  value = default = val1;  *ptr = val1;  }  else  {  value = default = *ptr;  }
-		min = min1;  max = max1;  width = max-min;
+		ptr = ptr1;  
+        if (val1 != -77) {  
+            value = vdefault = val1;  
+            *ptr = val1;  
+        }  else  {  
+        value = vdefault = *ptr;  
+        }
+		min = min1;  
+        max = max1;  
+        width = max-min;
 		step = step1;  fpow = pow1;  fpow1 = 1.f/pow1;
 	}
 	virtual ~Param() {  }
@@ -60,7 +67,8 @@ public:
 	T SetValue(const T value)	{  *ptr = value;  }
 
 	string GetValueString()
-	{	ostringstream ost;	int p = 4;
+	{	
+		std::ostringstream ost;	int p = 4;
 		if (abs(*ptr) < 0.001f)	 p = 2;
 		if (abs(*ptr) > 9000.f)  p = 6;
 		ost << setprecision(p) << *ptr;  return ost.str();	}
@@ -73,7 +81,7 @@ public:
 	void Increment(float t) {  *ptr += step * t;	if (*ptr > max)  *ptr = max;	}
 	void Decrement(float t) {  *ptr -= step * t;	if (*ptr < min)  *ptr = min;	}
 
-	void Reset() { *ptr = default; }
+	void Reset() { *ptr = vdefault; }
 	bool IsList() { return false; }
 
 	void Write(ostream &stream) { stream << name << " " << *ptr << '\n'; }
@@ -142,7 +150,7 @@ public:
 
 protected:
 	bool active;
-	vector<ParamBase*> params;
-	map<string, ParamBase*> map;
+	std::vector<ParamBase*> params;
+	std::map<string, ParamBase*> map;
 	ParamIter cur;
 };

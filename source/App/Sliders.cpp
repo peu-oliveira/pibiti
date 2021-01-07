@@ -1,6 +1,6 @@
 #include "header.h"
 #include "App.h"
-#include "..\CUDA\Params.cuh"
+#include "../CUDA/Params.cuh"
 
 
 

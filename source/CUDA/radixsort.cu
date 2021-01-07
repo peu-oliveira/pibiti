@@ -13,6 +13,10 @@ extern "C"
 //! @param pData1	   additional array to allow ping pong computation
 //! @param elements	 number of elements to sort
 ////////////////////////////////////////////////////////////////////////////////
+// TODO: (Gustavo) I am disabling this definition, since this function is already
+// being defined on radixsort_kernel.cu. It still not yet clear to me why it is
+// defined twice, since the definition is the same
+#if false
 void RadixSort(KeyValuePair *pData0, KeyValuePair *pData1, uint elements, uint bits)
 {
 	// Round element count to total number of threads for efficiency
@@ -41,5 +45,5 @@ void RadixSort(KeyValuePair *pData0, KeyValuePair *pData1, uint elements, uint b
 		pData1 = pTemp;
    }
 }
-
+#endif
 }

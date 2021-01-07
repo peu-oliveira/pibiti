@@ -1,6 +1,6 @@
 #include "header.h"
 
-#include "..\SPH\Scene.h"
+#include "../SPH/Scene.h"
 //#include "tinyxmlerror.cpp"
 //#include "tinyxmlparser.cpp"
 

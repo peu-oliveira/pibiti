@@ -1,6 +1,6 @@
 #include "header.h"
 #include "App.h"
-#include "..\SPH\SPH.h"
+#include "../SPH/SPH.h"
 
 
 
@@ -32,8 +32,9 @@ void App::UpdateEmitter()
 	//if (d.x*d.x + d.y*d.y + d.z*d.z > mind2)
 	{
 		for (int iter=0; iter<3; ++iter)
-		{	p->collPos += d * inertia;
-			d = colliderPos - p->collPos;	}
+		{	
+        p->collPos += d * inertia;
+        d = colliderPos - p->collPos;	}
 		ParamBase::Changed();
 	}
 

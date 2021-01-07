@@ -1,8 +1,8 @@
 #pragma once
 
-#include "..\CUDA\Params.cuh"
-#include "..\pch\timer.h"
-#include "..\SPH\Scene.h"
+#include "../CUDA/Params.cuh"
+#include "../pch/timer.h"
+#include "../SPH/Scene.h"
 
 
 

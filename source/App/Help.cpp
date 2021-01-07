@@ -22,7 +22,7 @@ void App::RenderHelp()
 	
 	#define  line(w,h)  glBegin(GL_LINES);	V(x,y+h,0);  V(x+w,y+h,0);  glEnd();
 	#define  sub(s) \
-		glColor3f(0.6, 0.7, 1.0);	glPrint(x,y, "    "s, fnt);  line(250,3);\
+		glColor3f(0.6, 0.7, 1.0);	glPrint(x,y, (std::string("    ") + std::string(s)).c_str(), fnt);  line(250,3);\
 		y+=Fy*2;	glColor3f(0.8, 0.9, 1.0);
 	
 	#define  wr(s, yy)	glPrint(x,y, s, fnt);  y+=Fy*yy;

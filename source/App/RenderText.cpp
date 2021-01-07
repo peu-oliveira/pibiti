@@ -76,7 +76,7 @@ void App::RenderText()
 	if (bInfo)
 	{	x = ScreenX -260;  y = 20;
 		#define wr(n)		 glPrint(x,y,s,fnt);  y += Fy*n;
-		#define line(st,n)   glBegin(GL_LINES);  V(x,y+3,0);  V(x+250,y+3,0);  glEnd();  strcpy(s,"  "st);  wr(n);
+		#define line(st,n)   glBegin(GL_LINES);  V(x,y+3,0);  V(x+250,y+3,0);  glEnd();  strcpy(s, (std::string("  ") + std::string(st)).c_str());  wr(n);
 		/**/line("Scene Info", 1);
 		sprintf(s, "Particles    %d", p->numParticles);  wr(1);
 		sprintf(s, "Max In Cell  %d", p->maxParInCell);  wr(2);

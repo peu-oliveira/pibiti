@@ -1,10 +1,8 @@
 /*  SPH Kernel, Device code.  */
 #pragma once
-
-#include "cutil_math.h"
+#include "../pch/header.h"
 #include "math_constants.h"
 #include "Params.cuh"
-
 
 typedef unsigned int uint;
 
@@ -28,7 +26,7 @@ __constant__ SimParams par;
 //----------------------------------------------------------------------------------------------------------------------------
 ///  Boundary Conditions
 //----------------------------------------------------------------------------------------------------------------------------
-
+#if false
 __device__ void boundary(float3& pos, float3& vel)
 {
 	//  world box
@@ -207,7 +205,7 @@ __global__ void integrateD(float4* newPos, float4* newVel, float4* oldPos, float
 //----------------------------------------------------------------------------------------------------------------------------
 ///  Compute SPH  Force
 //----------------------------------------------------------------------------------------------------------------------------
-
+#if false
 __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, float4* oldVel, 
 		float4* clr, float* pressure, float* density, float* dyeColor/**/,	uint2* particleHash,  uint* cellStart)
 {
@@ -235,7 +233,7 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 	
 	///  Height map  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	if (par.iHmap > 0)
-	{	float3 vel3 = -make_float3(vel);
+	{	float3 vel3 = make_float3(vel) * -1;
 		float rr = par.particleR + par.rotR;
 		const int hz = 2,hy = 1;
 
@@ -295,7 +293,7 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 	if (par.rotType > 0)
 	{	int sx = par.rotSize.x, sy = par.rotSize.y, sz = par.rotSize.z, cb = par.rotBlades;
 		float r = par.rotR, sp = par.rotSpc, ca = PI2/cb, x2 = sx*0.5f, y2 = sy*0.5f;
-		float rr = par.particleR + r;	float3 vel3 = -make_float3(vel);
+		float rr = par.particleR + r;	float3 vel3 = make_float3(vel) * -1;
 		
 		switch (par.rotType)
 		{
@@ -457,3 +455,5 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 	}
 	clr[si] = make_float4(color, 1.f);
 }
+#endif
+#endif

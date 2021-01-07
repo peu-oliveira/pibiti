@@ -1,6 +1,6 @@
 #include "header.h"
 
-#include "..\SPH\Scene.h"
+#include "../SPH/Scene.h"
 
 
 
@@ -34,7 +34,9 @@ void Scene::_FromXML(TiXmlElement* s)
 
 
 	///  cam  - - - - - - - - - - - - - - - - - - - - - -
+	#if defined(__WIN32__)
 	A("name")	strncpy_s(title, sizeof(title), a, _TRUNCATE);
+	#endif
 	A("chapter")	bChapter = true;
 	Av("CamPos", camPos);	Av("CamRot", camRot);
 	Af("dropR",	dropR);		Ai("rain", rain);
