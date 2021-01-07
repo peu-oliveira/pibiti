@@ -44,7 +44,6 @@ void main()
 
 char *ParticleRenderer::GvertexShader =
 STRING(
-uniform sampler2D depth;
 uniform float  pointRadius;  // point size in world space
 uniform float  pointScale;   // scale to calculate size in pixels
 out vec3 aPos;
@@ -61,7 +60,6 @@ void main()
 	gl_TexCoord[0] = gl_MultiTexCoord0;
 	aPos = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
 
-	float sla = texture(depth, gl_TexCoord[0].xy).r;
 	vec4 temporario = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
 	gl_Position = temporario;
 
@@ -71,7 +69,9 @@ void main()
 
 char *ParticleRenderer::CubemapVertexShader =
 STRING(
-	out vec3 TexCoords;
+#version 130 \n
+
+out vec3 TexCoords;
 void main()
 {
 	TexCoords = gl_Vertex.xyz;
@@ -176,14 +176,13 @@ uniform float  SCR_HEIGHT;
 uniform float  SCR_WIDTH;
 
 layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 Zvalue;
 in vec2 TexCoords;
 uniform sampler2D depth;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
-uniform sampler2D gAlbedoSpec;
+//uniform sampler2D gAlbedoSpec;
 uniform samplerCube skybox;
-vec3 currNorm = vec3(1);
+vec3 currNorm = vec3(0.0);
 
 float dzdx(int n )
 {
@@ -192,7 +191,9 @@ float dzdx(int n )
 	vec2 x1 = vec2(TexCoords.x - (1.0 / SCR_WIDTH) + (1.0 / SCR_WIDTH)*n, TexCoords.y);
 	float z0 = texture(depth, x0).r;
 	float z1 = texture(depth, x1).r;
-	return (z0-z1)/2.0;
+	//if (abs(z0 - z1) > 0.01) return 0;
+	if (z0==1.0 || z1==1.0) return 0;
+	 return (z0-z1)/2.0;
 }
 
 //	dz/dy
@@ -203,14 +204,16 @@ float dzdy(int n )
 	vec2 y1 = vec2(TexCoords.x, TexCoords.y - (1.0 / SCR_HEIGHT) + (1.0 / SCR_HEIGHT)*n);
 	float z0 = texture(depth, y0).r;
 	float z1 = texture(depth, y1).r;
-	return (z0 - z1)/2.0;
+	//if (abs(z0 - z1) > 0.01) return 0;
+	if (z0 == 1.0 || z1 == 1.0) return 0;
+	 return (z0 - z1)/2.0;
 }
 float curvature_flow_step(float Z)
 {
 	float height = SCR_HEIGHT;
 	float  width = SCR_WIDTH;
-	float j = TexCoords.y * height;
-	float i = TexCoords.x * width;
+	float j = TexCoords.y;
+	float i = TexCoords.x;
 
 	if (Z > 0) {
 		float dz_x = dzdx(0);
@@ -243,10 +246,11 @@ float curvature_flow_step(float Z)
 		if (D != 0)
 		{
 			float rv_sqrtD = 1.f / sqrt(D);
-			currNorm.x = -Cy * dz_x * rv_sqrtD;
-			currNorm.y = -Cx * dz_y * rv_sqrtD;
-			currNorm.z = Cx * Cy * (1 - Z) * rv_sqrtD;
+			currNorm.x = (-Cy * dz_x * rv_sqrtD);
+			currNorm.y =  (-Cx * dz_y * rv_sqrtD);
+			currNorm.z = (Cx * Cy * (1-Z) * rv_sqrtD);
 		}
+		//else currNorm = vec3(0);
 		return (Cy * Ex + Cx * Ey) * inv_D32 / 2.0;
 	}
 	else return 0;
@@ -255,14 +259,18 @@ float curvature_flow_step(float Z)
 
 void main()
 {
-	vec3 fPos = texture(gPosition, vec2(TexCoords.x,TexCoords.y)).rgb;
+	vec3 fPos = texture(gPosition, TexCoords).rgb;
 	vec3 fNormal = texture(gNormal, TexCoords).rgb;
-	vec4 fAlbedo = texture(gAlbedoSpec, TexCoords).rgba;
-	vec3 gdepth = texture(depth, TexCoords).rgb;
-
+//	vec4 fAlbedo = texture(gAlbedoSpec, TexCoords).rgba;
 	float Z = texture(depth, TexCoords).r;
+	if (Z <= 0.0) discard;
 	float FlowDepth = curvature_flow_step(Z);
-	Zvalue = vec4(FlowDepth);
+	if (FlowDepth > 1.0) FlowDepth = 1.0;
+	if (FlowDepth < -1.0) FlowDepth = -1.0;
+
+	Z = Z - (FlowDepth*0.001);
+	if (Z > 1) Z = 1.0;
+	if (Z < 0) Z = 0.0;
 
 	const vec3 lightDir = vec3(0.577, 0.577, 0.577);
 
@@ -272,14 +280,15 @@ void main()
 
 	// calculate lighting
 	float diffuse = max(0.0, dot(lightDir, currNorm));
-	float ratio = 1.00 / 1.52;
+	float ratio = 1.00 / 1.33;
 	vec3 R = refract(fPos, normalize(currNorm), ratio);
+	vec3 R2 = reflect(fPos, normalize(currNorm));
 
   //  if(FlowDepth>0) FragColor = fAlbedo*(fAmbient + fDiffuse * pow(diffuse, fPower));
-	gl_FragDepth = FlowDepth;
-	if(Z<1)	FragColor = vec4(texture(skybox, R).rgb, 1.0);
-	else FragColor = vec4(0);
-	//FragColor = vec4(Z);
+    gl_FragDepth = Z;
+	FragColor = (vec4(texture(skybox, R).rgb,1.0)*0.6 +vec4(0.2, 0.5, 0.7, 1.0)*0.1 + vec4(texture(skybox, R2).rgb, 1.0)*0.3);
+	//FragColor = vec4(vec3(Z),1.0);
+	//FragColor = vec4(currNorm, 1.0);
 }
 
 

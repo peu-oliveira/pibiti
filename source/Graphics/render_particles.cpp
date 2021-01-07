@@ -1,11 +1,10 @@
 #include "header.h"
-#include "curvatureflow.h"
 #include "render_particles.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 unsigned int cubemapTexture;
-bool isTexC=0;
+bool isTexCreated=0;
 
 ParticleRenderer::ParticleRenderer() :
 	m_pos(0), m_numParticles(0), m_ParRadius(0.04f), m_ParScale(1.f),
@@ -71,13 +70,6 @@ void ParticleRenderer::display()
 }
 void ParticleRenderer::display_CF(bool FB)
 {
-	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
-	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
-	glEnable(GL_POINT_SPRITE_ARB);
-	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
-	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
-	glDepthMask(GL_TRUE); glEnable(GL_DEPTH_TEST);
-
 	int i = m_nProg;
 	glUseProgram(m_program[i]);	//  pass vars
 	glUniform1i(glGetUniformLocation(m_program[i], "depth"), 0);
@@ -92,14 +84,14 @@ void ParticleRenderer::display_CF(bool FB)
 	}
 	else {
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Zvalue);
+		glBindTexture(GL_TEXTURE_2D, depth2);
 	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+	//glActiveTexture(GL_TEXTURE3);
+	//glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 
@@ -129,7 +121,6 @@ void ParticleRenderer::createTexture()
 	cout << "tex created" << endl;
 	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
-	gBuffer;
 	glGenFramebuffers(1, &gBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	// depth buffer
@@ -166,6 +157,12 @@ void ParticleRenderer::createTexture()
 
 	glGenFramebuffers(1, &depthFB);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
+	glGenTextures(1, &depth2);
+	glBindTexture(GL_TEXTURE_2D, depth2);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth2, 0);
 	glGenTextures(1, &Zvalue);
 	glBindTexture(GL_TEXTURE_2D, Zvalue);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -182,30 +179,32 @@ void ParticleRenderer::createTexture()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void ParticleRenderer::createQuad() {
+	unsigned int quadVBO;
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f / 1, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f / 1, 0.0f, 0.0f, 0.0f,
+			1.0f,  1.0f / 1, 0.0f, 1.0f, 1.0f,
+			1.0f, -1.0f / 1, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+}
+
 void ParticleRenderer::renderQuad()
 {
-	unsigned int quadVAO = 0;
-	unsigned int quadVBO;
-		if (quadVAO == 0)
-		{
-			float quadVertices[] = {
-				// positions        // texture Coords
-				-1.0f,  1.0f / 1, 0.0f, 0.0f, 1.0f,
-				-1.0f, -1.0f / 1, 0.0f, 0.0f, 0.0f,
-				1.0f,  1.0f / 1, 0.0f, 1.0f, 1.0f,
-				1.0f, -1.0f / 1, 0.0f, 1.0f, 0.0f,
-			};
-			// setup plane VAO
-			glGenVertexArrays(1, &quadVAO);
-			glGenBuffers(1, &quadVBO);
-			glBindVertexArray(quadVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-		}
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
@@ -226,10 +225,10 @@ void ParticleRenderer::drawCubemap()
 
 void ParticleRenderer::DepthBufUse()
 {
-	if (isTexC == 0) {
+	if (isTexCreated == 0) {
 		cubemap();
 		createTexture();
-		isTexC = 1;
+		isTexCreated = 1;
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -251,20 +250,27 @@ void ParticleRenderer::DepthBufUse()
 	glDisable(GL_POINT_SPRITE_ARB);
 	//drawCubemap();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	int nIter = 5;
-	bool isFB = 1;
 	//glDepthMask(GL_FALSE);
+	glEnable(GL_POINT_SPRITE_ARB);
+	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
+	glDepthMask(GL_TRUE); glEnable(GL_DEPTH_TEST);
+	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
+	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
+	createQuad();
+	int nIter = 100;
+	bool FBnum = 1;
 	for (int i = 0; i < nIter; i++) {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		if(isFB==1) glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
+		if(FBnum==1) glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
 		else glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-		display_CF(isFB);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		display_CF(FBnum);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		isFB = !isFB;
+		FBnum = !FBnum;
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//glDepthMask(GL_TRUE);
-	display_CF(isFB);
+	display_CF(FBnum);
 	drawCubemap();
 }
 
