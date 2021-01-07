@@ -1,48 +1,54 @@
 #include "header.h"
 #include "timer.h"
 
-
 //  ___ ___ ___ ___  Timer class  ___ ___ ___ ___
 
 Timer::Timer()
 {
-	iv = 0.;  iv1 = 0.4;
-	iFR = 0;  FR = 0.;
-	
+	iv = 0.;
+	iv1 = 0.4;
+	iFR = 0;
+	FR = 0.;
+
 	LARGE_INTEGER FQ;
-	#if defined(__WIN32__)
-	if (QueryPerformanceFrequency( &FQ ))
-		fq = double( FQ.QuadPart );
-	else	printf("QueryPerformanceFrequency Error !\n");
+#if defined(__WIN32__)
+	if (QueryPerformanceFrequency(&FQ))
+		fq = double(FQ.QuadPart);
+	else
+		printf("QueryPerformanceFrequency Error !\n");
 
-	if (!QueryPerformanceCounter( &CC ))
-	{	printf("QueryPerformanceCounter Error !\n");	}
-	cc = double( CC.QuadPart );
+	if (!QueryPerformanceCounter(&CC))
+	{
+		printf("QueryPerformanceCounter Error !\n");
+	}
+	cc = double(CC.QuadPart);
 	t = cc / fq;
-	st = t;  st1 = t;
+	st = t;
+	st1 = t;
 
-	#endif
-	printf("CPU Freq = %7.4f GHz\n\n", fq*0.000000001);
+#endif
+	printf("CPU Freq = %7.4f GHz\n\n", fq * 0.000000001);
 }
 
 bool Timer::update(bool updFR)
 {
-	#if defined(__WIN32__)
-	if (!QueryPerformanceCounter( &CC ))	return true;
+#if defined(__WIN32__)
+	if (!QueryPerformanceCounter(&CC))
+		return true;
 
-	cc = double( CC.QuadPart );
+	cc = double(CC.QuadPart);
 	t = cc / fq;
-	
-	dt = t - st;  // delta time
-	if (dt < iv)  // interval
+
+	dt = t - st; // delta time
+	if (dt < iv) // interval
 		return false;
-	
-	st = t;  // old time
-	
+
+	st = t; // old time
+
 	//  framerate update
 	if (!updFR)
 		return true;
-	iFR++;  // frames count
+	iFR++; // frames count
 
 	dt1 = t - st1;
 	if (dt1 >= iv1)
@@ -54,6 +60,6 @@ bool Timer::update(bool updFR)
 
 		st1 = t;
 	}
-	#endif
+#endif
 	return true;
 }
