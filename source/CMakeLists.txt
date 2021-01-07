@@ -5,6 +5,7 @@ find_package(GLEW REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(CUDA 6.5 REQUIRED)
 find_package(OpenGL REQUIRED)
+
 if (UNIX)
     find_package(X11 REQUIRED)
 endif (UNIX)
