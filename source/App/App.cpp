@@ -146,6 +146,7 @@ int main(int argc, char **argv)
 	glutInitWindowSize(App::WSizeX, App::WSizeY);
 	glutCreateWindow("CUDA SPH");
 	glewInit();
+
 	if (!glewIsSupported("GL_VERSION_2_0 GL_VERSION_1_5 GL_ARB_multitexture GL_ARB_vertex_buffer_object"))
 	{
 		fprintf(stderr, "Required OpenGL extensions missing:\n"
@@ -155,6 +156,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
+	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	App::init();
 	{
 		glutDisplayFunc(&App::Render);

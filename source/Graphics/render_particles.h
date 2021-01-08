@@ -12,6 +12,7 @@ public:
 	void display_CF(bool FB);
 	void createTexture();
 	void renderQuad();
+	void createQuad();
 	void drawCubemap();
 	void DepthBufUse();
 	//unsigned int loadCubemap(vector<std::string> faces);
@@ -36,7 +37,7 @@ public:
 	int m_nProg;
 
 	float *m_pos;	GLuint m_program[NumProg], m_vbo, m_colorVbo, m_scaleProg, gbufferProg,SkyboxProg;
-	unsigned int skyboxVAO;
+	unsigned int skyboxVAO,quadVAO=0;
 	int m_numParticles,  m_window_w, m_window_h;  float m_fov;
 
 	float m_ParRadius, m_ParScale,  m_fDiffuse, m_fAmbient, m_fPower,  m_fSteps, m_fHueDiff;
