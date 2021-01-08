@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(SPH)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(GLEW REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(CUDA 6.5 REQUIRED)
