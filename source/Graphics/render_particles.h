@@ -7,7 +7,7 @@ class ParticleRenderer
 {
 public:
 	ParticleRenderer();  ~ParticleRenderer();
-	bool Pedro = 0;
+	bool Pedro = 1;
 	void display();
 	void display_CF(bool FB);
 	void createTexture();

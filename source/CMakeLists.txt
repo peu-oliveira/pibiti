@@ -21,6 +21,7 @@ endif (UNIX)
 
 include_directories(pch)
 include_directories(external)
+include_directories(external/tinyxml)
 
 file(GLOB APP_SOURCES ./App/*.cpp)
 file(GLOB GRAPHICS_SOURCES ./Graphics/*.cpp)
