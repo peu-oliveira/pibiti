@@ -366,12 +366,12 @@ void ParticleRenderer::cubemap()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
 	vector<std::string> faces{
-		("skybox/px.png"),
-		("skybox/nx.png"),
-		("skybox/py.png"),
-		("skybox/ny.png"),
-		("skybox/pz.png"),
-		("skybox/nz.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/px.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/nx.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/py.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/ny.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/pz.png"),
+		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/nz.png"),
 	};
 	unsigned int textureID;
 	glGenTextures(1, &textureID);

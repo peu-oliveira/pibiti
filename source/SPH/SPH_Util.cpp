@@ -17,7 +17,7 @@ uint cSPH::createVBO(uint size)
 }
 
 
-// inline float lerp(float a, float b, float t)  {   return a + t*(b-a);   }
+ inline float lerp(float a, float b, float t)  {   return a + t*(b-a);   }
 
 void cSPH::colorRamp(float t, float *r)
 {

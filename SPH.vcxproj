@@ -1,0 +1,498 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EmuDebug|Win32">
+      <Configuration>EmuDebug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EmuDebug|x64">
+      <Configuration>EmuDebug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EmuRelease|Win32">
+      <Configuration>EmuRelease</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="EmuRelease|x64">
+      <Configuration>EmuRelease</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AF7F45C7-8545-4CA2-B835-FDE8823B7B09}</ProjectGuid>
+    <RootNamespace>SPH</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\Usuario\Desktop\UFBA\IC\sph-cuda-master\External\cuda-workshop-master\cutil\src;C:\Users\Usuario\Desktop\UFBA\IC\sph-cuda-master\External\cuda-workshop-master\cutil\inc;C:\Users\Usuario\Desktop\UFBA\IC\sph-cuda-master\External\tinyxml;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;C:\Users\Usuario\Desktop\UFBA\IC\sph-cuda-master\Source\CUDA;C:\Users\Usuario\Desktop\UFBA\IC\sph-cuda-master\External\cutil;C:\Users\Usuario\Desktop\UFBA\IC\freeglut-3.2.1\include;C:\Users\Usuario\Desktop\UFBA\IC\sph-cuda-master\Source\pch;C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\GIT_REP\pibiti - Copia\source\external;C:\GIT_REP\pibiti - Copia;C:\GIT_REP\pibiti - Copia\source\External\cuda-workshop-master\cutil\src;C:\GIT_REP\pibiti - Copia\source\External\stbimage;C:\GIT_REP\pibiti - Copia\source\External\cuda-workshop-master\cutil\inc;C:\GIT_REP\pibiti - Copia\Source\External\tinyxml;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;C:\GIT_REP\pibiti - Copia\Source\CUDA;C:\GIT_REP\pibiti - Copia\source\External\cutil;C:\Users\Usuario\Desktop\UFBA\IC\freeglut-3.2.1\include;C:\GIT_REP\pibiti - Copia\Source\pch;C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>.</OutDir>
+    <IntDir>.</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\GIT_REP\pibiti - Copia\External\cuda-workshop-master\cutil\src;C:\GIT_REP\pibiti - Copia\External\cuda-workshop-master\cutil\inc;C:\GIT_REP\pibiti - Copia\External\tinyxml;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;C:\GIT_REP\pibiti - Copia\Source\CUDA;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Users\Usuario\Desktop\UFBA\IC\freeglut-3.2.1\include;C:\GIT_REP\pibiti - Copia\Source\pch;C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\GIT_REP\pibiti - Copia\External\cuda-workshop-master\cutil\src;C:\GIT_REP\pibiti - Copia\External\cuda-workshop-master\cutil\inc;C:\GIT_REP\pibiti - Copia\External\tinyxml;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;C:\GIT_REP\pibiti - Copia\Source\CUDA;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Users\Usuario\Desktop\UFBA\IC\freeglut-3.2.1\include;C:\GIT_REP\pibiti - Copia\Source\pch;C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|Win32'">
+    <OutDir>$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|Win32'">
+    <OutDir>$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Command />
+    </PreBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;TIXML_USE_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;glew32.lib;tinyxml.lib;glew32s.lib;cuda.lib;cutil32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>SPH.exe</OutputFile>
+      <AdditionalLibraryDirectories>C:\Users\Usuario\Desktop\UFBA\Programação\Computação gráfica\assimp-3.1.1-win-binaries\samples\glut;C:\GIT_REP\pibiti - Copia\External\tinyxml\Debugtinyxml;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\Win32;C:\GIT_REP\pibiti - Copia\External\tinyxml;$(CudaToolkitLibDir);C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\lib\Release\Win32;$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+    <CudaLink>
+      <AdditionalLibraryDirectories>C:\GIT_REP\pibiti - Copia\External\Win32;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\Win32</AdditionalLibraryDirectories>
+    </CudaLink>
+    <CudaLink>
+      <AdditionalDependencies>cudart.lib;cuda.lib;cutil32.lib;</AdditionalDependencies>
+    </CudaLink>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;TIXML_USE_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;glew32.lib;glew32s.lib;cuda.lib;cutil32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>x64/Release/SPH.exe</OutputFile>
+      <AdditionalLibraryDirectories>C:\Users\Usuario\Desktop\UFBA\IC\freeglut-3.2.1\build\lib\Debug;C:\GIT_REP\pibiti - Copia\External\tinyxml\x64\Release;C:\Users\Usuario\Desktop\glut;C:\Users\Usuario\Desktop\freeglut\lib\x64;C:\GIT_REP\pibiti - Copia\source\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\x64;$(CudaToolkitLibDir);C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\lib\Release\x64;$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+    <CudaLink>
+      <AdditionalLibraryDirectories>C:\GIT_REP\pibiti - Copia\External\tinyxml\x64\Release;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\x64</AdditionalLibraryDirectories>
+    </CudaLink>
+    <CudaLink>
+      <AdditionalDependencies>cudart.lib;cuda.lib;cutil32.lib;tinyxml.lib;</AdditionalDependencies>
+    </CudaLink>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\include;C:\Users\Usuario\Desktop\UFBA\sph-cuda-master\Source\pch;$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;glew32.lib;tinyxml.lib;glew32s.lib;cuda.lib;cutil32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>SPH.exe</OutputFile>
+      <AdditionalLibraryDirectories>C:\Users\Usuario\Desktop\UFBA\Programação\Computação gráfica\assimp-3.1.1-win-binaries\samples\glut;C:\GIT_REP\pibiti - Copia\External\tinyxml\Debugtinyxml;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\Win32;C:\GIT_REP\pibiti - Copia\External\tinyxml;$(CudaToolkitLibDir);C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\lib\Release\Win32;$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)SPH.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <RegisterOutput>true</RegisterOutput>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+    <CudaLink>
+      <AdditionalLibraryDirectories>C:\GIT_REP\pibiti - Copia\External\Win32;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\Win32</AdditionalLibraryDirectories>
+    </CudaLink>
+    <CudaLink>
+      <AdditionalDependencies>cudart.lib;cuda.lib;cutil32.lib;</AdditionalDependencies>
+      <GPUDebugInfo>true</GPUDebugInfo>
+      <LinkOut>$(IntDir)$(TargetName).device-link.obj</LinkOut>
+    </CudaLink>
+    <CudaCompile>
+      <Include>
+      </Include>
+      <CodeGeneration>compute_20,sm_20</CodeGeneration>
+      <Runtime>InheritFromHost</Runtime>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\include;C:\Users\Usuario\Desktop\UFBA\sph-cuda-master\Source\pch;$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;glew32.lib;tinyxml.lib;glew32s.lib;cuda.lib;cutil32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>SPH.exe</OutputFile>
+      <AdditionalLibraryDirectories>C:\Users\Usuario\Desktop\UFBA\Programação\Computação gráfica\assimp-3.1.1-win-binaries\samples\glut;C:\GIT_REP\pibiti - Copia\External\tinyxml\Debugtinyxml;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\Win32;C:\GIT_REP\pibiti - Copia\External\tinyxml;$(CudaToolkitLibDir);C:\Users\Usuario\Desktop\UFBA\IC\glew-2.2.0\lib\Release\Win32;$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)SPH.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <RegisterOutput>true</RegisterOutput>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+    <CudaLink>
+      <AdditionalLibraryDirectories>C:\GIT_REP\pibiti - Copia\External\Win32;C:\GIT_REP\pibiti - Copia\External\cutil;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\lib\Win32</AdditionalLibraryDirectories>
+    </CudaLink>
+    <CudaLink>
+      <AdditionalDependencies>cudart.lib;cuda.lib;cutil32.lib;</AdditionalDependencies>
+      <GPUDebugInfo>true</GPUDebugInfo>
+      <LinkOut>$(IntDir)$(TargetName).device-link.obj</LinkOut>
+    </CudaLink>
+    <CudaCompile>
+      <Include>
+      </Include>
+      <CodeGeneration>compute_20,sm_20</CodeGeneration>
+      <Runtime>InheritFromHost</Runtime>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;cutil32.lib;glew32.lib;tinyxml_STL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>SPH_ed.exe</OutputFile>
+      <AdditionalLibraryDirectories>$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)SPH.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EmuDebug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;cutil32.lib;glew32.lib;tinyxml_STL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>SPH_ed.exe</OutputFile>
+      <AdditionalLibraryDirectories>$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)SPH.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;cutil32.lib;glew32.lib;tinyxml_STL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>SPH_e.exe</OutputFile>
+      <AdditionalLibraryDirectories>$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EmuRelease|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>cudart.lib;cutil32.lib;glew32.lib;tinyxml_STL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>SPH_e.exe</OutputFile>
+      <AdditionalLibraryDirectories>$(CUDA_LIB_PATH);../../common/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+    </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST cg_variables.h move cg_variables.h $(Configuration)\</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CudaCompile Include="Source\CUDA\radixsort.cu" />
+    <CudaCompile Include="Source\CUDA\System.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CUDA Build Step: System</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CUDA Build Step: System</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(CUDA_BIN_PATH)\nvcc.exe"  -arch=sm_10 -use_fast_math -ccbin "$(VCInstallDir)\bin" -c -I "$(CUDA_INC_PATH)"%3b -I./ -o $(Configuration)\System_cu.obj Source\CUDA\System.cu
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(CUDA_BIN_PATH)\nvcc.exe"  -arch=sm_10 -use_fast_math -ccbin "$(VCInstallDir)\bin" -c -I "$(CUDA_INC_PATH)"%3b -I./ -o $(Configuration)\System_cu.obj Source\CUDA\System.cu
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">System.cuh; Kernel.cu; radixsort.cu;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">System.cuh; Kernel.cu; radixsort.cu;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\System_cu.obj;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Configuration)\System_cu.obj;%(Outputs)</Outputs>
+      <FileType>Document</FileType>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="External\tinyxml\tinystr.cpp" />
+    <ClCompile Include="External\tinyxml\tinyxml.cpp" />
+    <ClCompile Include="External\tinyxml\tinyxmlerror.cpp" />
+    <ClCompile Include="External\tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="Source\App\App.cpp" />
+    <ClCompile Include="Source\App\Help.cpp" />
+    <ClCompile Include="Source\App\Input.cpp" />
+    <ClCompile Include="Source\App\Render.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\App\RenderBC.cpp" />
+    <ClCompile Include="Source\App\RenderText.cpp" />
+    <ClCompile Include="Source\App\Sliders.cpp" />
+    <ClCompile Include="Source\App\Update.cpp" />
+    <ClCompile Include="Source\Graphics\param.cpp" />
+    <ClCompile Include="Source\Graphics\paramgl.cpp" />
+    <ClCompile Include="Source\Graphics\render_particles.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\render_shaders.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\pch\header.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Source\pch\timer.cpp" />
+    <ClCompile Include="Source\SPH\Scene.cpp" />
+    <ClCompile Include="Source\SPH\Scene_Load.cpp" />
+    <ClCompile Include="Source\SPH\SPH_Init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\SPH\SPH_Mem.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\SPH\SPH_Scenes.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\SPH\SPH_Update.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Source\SPH\SPH_Util.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="curvatureflow.h" />
+    <ClInclude Include="External\tinyxml\tinystr.h" />
+    <ClInclude Include="External\tinyxml\tinyxml.h" />
+    <ClInclude Include="Source\App\App.h" />
+    <ClInclude Include="Source\Graphics\param.h" />
+    <ClInclude Include="Source\Graphics\paramgl.h" />
+    <ClInclude Include="Source\Graphics\render_particles.h" />
+    <ClInclude Include="Source\pch\header.h" />
+    <ClInclude Include="Source\pch\timer.h" />
+    <ClInclude Include="Source\SPH\Scene.h" />
+    <ClInclude Include="Source\SPH\SPH.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.targets" />
+  </ImportGroup>
+</Project>

@@ -20,8 +20,8 @@ void Scene::_FromXML(TiXmlElement* s)
 	
 	
 	///  World  - - - - - - - - - - - - - - - - - - - - -
-	#define  InitS(si)	initMin =	 si*-0.5f;	initMax =	 si*0.5f;
-	#define  World(sw)	p.worldMin = sw*-0.5f;	p.worldMax = sw*0.5f;
+	#define  InitS(si )	initMin =	 si * -0.5f;	initMax =	 si * 0.5f;
+	#define  World(sw )	p.worldMin = sw * -0.5f;	p.worldMax = sw * 0.5f;
 
 	A("World")	{	World(toVec3(a))	InitS(toVec3(a))  }
 	A("Init")	{	InitS(toVec3(a))	}
