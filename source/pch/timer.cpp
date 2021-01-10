@@ -8,10 +8,10 @@ Timer::Timer()
 	iv = 0.;
 	iv1 = 0.4;
 	iFR = 0;
-	FR = 0.;
+	FR = 0;
 
 	LARGE_INTEGER FQ;
-#if defined(__WIN32__)
+#if defined(_WIN32)
 	if (QueryPerformanceFrequency(&FQ))
 		fq = double(FQ.QuadPart);
 	else
@@ -32,7 +32,7 @@ Timer::Timer()
 
 bool Timer::update(bool updFR)
 {
-#if defined(__WIN32__)
+#if defined(__WIN32)
 	if (!QueryPerformanceCounter(&CC))
 		return true;
 

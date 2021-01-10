@@ -16,8 +16,10 @@ uint cSPH::createVBO(uint size)
 	return vbo;
 }
 
-
-// inline float lerp(float a, float b, float t)  {   return a + t*(b-a);   }
+// Already defined on linux
+#if defined(_WIN32)
+inline float lerp(float a, float b, float t)  {   return a + t*(b-a);   }
+#endif
 
 void cSPH::colorRamp(float t, float *r)
 {

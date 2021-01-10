@@ -78,7 +78,7 @@ void App::init()
 	if (!bWindowed)
 		glutFullScreen();
 // TODO: Disable vsync outside windows
-#if defined(__WIN32__)
+#if defined(_WIN32)
 	if (bVsyncOff)
 		wglSwapIntervalEXT(0);
 #endif

@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(SPH)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_COMPILER "gcc-8")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++-8")
+
 find_package(GLEW REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(CUDA 6.5 REQUIRED)
@@ -18,6 +23,7 @@ endif (UNIX)
 
 include_directories(pch)
 include_directories(external)
+include_directories(external/tinyxml)
 
 file(GLOB APP_SOURCES ./App/*.cpp)
 file(GLOB GRAPHICS_SOURCES ./Graphics/*.cpp)
