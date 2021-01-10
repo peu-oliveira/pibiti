@@ -34,7 +34,7 @@ void Scene::_FromXML(TiXmlElement* s)
 
 
 	///  cam  - - - - - - - - - - - - - - - - - - - - - -
-	#if defined(__WIN32__)
+	#if defined(_WIN32)
 	A("name")	strncpy_s(title, sizeof(title), a, _TRUNCATE);
 	#endif
 	A("chapter")	bChapter = true;
