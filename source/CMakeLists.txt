@@ -3,6 +3,8 @@ project(SPH)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_COMPILER "gcc-8")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++-8")
 
 find_package(GLEW REQUIRED)
 find_package(GLUT REQUIRED)
