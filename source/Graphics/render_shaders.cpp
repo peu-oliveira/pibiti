@@ -68,8 +68,7 @@ char *ParticleRenderer::CubemapVertexShader =
 		   });
 
 char *ParticleRenderer::CubemapFragmentShader =
-	STRING(
-
+	STRING(#version 130\n
 		in vec3 TexCoords;
 		uniform samplerCube skybox;
 		out vec4 FragColor;
@@ -78,7 +77,7 @@ char *ParticleRenderer::CubemapFragmentShader =
 		});
 
 char *ParticleRenderer::GfragmentShader =
-	STRING(
+	STRING(#version 130\n
 		uniform float fAmbient; // factors
 		uniform float fDiffuse;
 		uniform float fPower;
