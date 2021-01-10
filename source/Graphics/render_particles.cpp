@@ -429,8 +429,8 @@ GLuint ParticleRenderer::_compileProgram(const char *vsource, const char *fsourc
 
 	if (!success)
 	{
-		char temp[256];
-		glGetProgramInfoLog(program, 256, 0, temp);
+		char temp[1024];
+		glGetProgramInfoLog(program, 1024, 0, temp);
 		printf("Failed to link program:\n%s\n", temp);
 		glDeleteProgram(program);
 		program = 0;
@@ -470,8 +470,8 @@ GLuint ParticleRenderer::_compileProgramA(const char *vsource, const char *fsour
 
 	if (!success)
 	{
-		char temp[256];
-		glGetProgramInfoLog(program, 256, 0, temp);
+		char temp[1024];
+		glGetProgramInfoLog(program, 1024, 0, temp);
 		printf("Failed to link program:\n%s\n", temp);
 		glDeleteProgram(program);
 		program = 0;
