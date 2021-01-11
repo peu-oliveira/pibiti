@@ -45,6 +45,7 @@ inline float3 operator-(float4 &a, float3 &b)
 	return v;
 }
 
+
 #if defined(_WIN32)
 // //  float3 missings
 inline void float3set(float *a, float *b)

@@ -468,6 +468,10 @@ void App::KeySpecial(int k, int x, int y)
 			iTimes = (iTimes + 1) % NumTimM;
 		break;
 
+	case GLUT_KEY_F10:
+		App::changeBool();
+		pParRend->changeBool();
+		break;
 	case GLUT_KEY_PAGE_UP:
 		psys->PrevScene(ctrl);
 		fSimTime = 0.f;
