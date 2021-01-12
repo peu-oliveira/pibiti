@@ -47,7 +47,7 @@ void App::Render()
 	}
 	glutSwapBuffers();
 	
-	//glutReportErrors();
+	glutReportErrors();
 //	CUT_SAFE_CALL(cutStopTimer(timer[0]));
 }
 

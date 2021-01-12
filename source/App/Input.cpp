@@ -297,6 +297,11 @@ void App::KeyPressed(unsigned char k, int x, int y)
 		exit(0);
 		break;
 
+	case 'q':
+		App::changeBool();
+		pParRend->changeBool();
+		break;
+
 	case 'p':
 		bPaused = !bPaused;
 		break;
@@ -468,10 +473,6 @@ void App::KeySpecial(int k, int x, int y)
 			iTimes = (iTimes + 1) % NumTimM;
 		break;
 
-	case GLUT_KEY_F10:
-		App::changeBool();
-		pParRend->changeBool();
-		break;
 	case GLUT_KEY_PAGE_UP:
 		psys->PrevScene(ctrl);
 		fSimTime = 0.f;
@@ -489,6 +490,7 @@ void App::KeySpecial(int k, int x, int y)
 	case GLUT_KEY_F6:
 		fSimTime = 0.f;
 		break;
+
 	case GLUT_KEY_F7:
 		updVisParR();
 		break;
