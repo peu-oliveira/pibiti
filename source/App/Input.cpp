@@ -302,6 +302,14 @@ void App::KeyPressed(unsigned char k, int x, int y)
 		pParRend->changeBool();
 		break;
 
+	case 'h':
+		pParRend->raisenIter();
+		break;
+
+	case 'j':
+		pParRend->lownIter();
+		break;
+
 	case 'p':
 		bPaused = !bPaused;
 		break;

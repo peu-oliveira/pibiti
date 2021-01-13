@@ -23,6 +23,18 @@ void ParticleRenderer::changeBool() {
 	Pedro = !Pedro;
 }
 
+void ParticleRenderer::raisenIter() {
+	nIter++;
+}
+
+void ParticleRenderer::lownIter() {
+	if(nIter>0) nIter--;
+}
+
+int ParticleRenderer::ReturnNIter() {
+	return nIter;
+}
+
 void ParticleRenderer::_drawPoints()
 {
 	if (!m_vbo)
@@ -296,7 +308,6 @@ void ParticleRenderer::DepthBufUse()
 	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	createQuad();
-	int nIter = 100;
 	bool FBnum = 1;
 	for (int i = 0; i < nIter; i++)
 	{

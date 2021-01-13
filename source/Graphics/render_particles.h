@@ -8,6 +8,8 @@ public:
 	ParticleRenderer();  ~ParticleRenderer();
 	bool Pedro = 0;
 	void changeBool();
+	void raisenIter();
+	void lownIter();
 	void display();
 	void display_CF(bool FB);
 	void createTexture();
@@ -15,6 +17,8 @@ public:
 	void createQuad();
 	void drawCubemap();
 	void DepthBufUse();
+	int ReturnNIter();
+	int nIter = 0;
 	//unsigned int loadCubemap(vector<std::string> faces);
 	void cubemap();
 	//  set
