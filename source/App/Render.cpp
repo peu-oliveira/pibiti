@@ -13,6 +13,14 @@ void App::Simulate()
 	fSimTime += psys->scn.params.timeStep;
 }
 
+bool Curv_Flow_Render = 0; //** Set renderization method
+
+void App::changeBool()
+{
+	Curv_Flow_Render = !Curv_Flow_Render;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 void App::genTex() {
 	pParRend->createTexture();
 };
@@ -24,20 +32,22 @@ void App::Render()
 //	CUT_SAFE_CALL(cutStartTimer(timer[0]));
 	UpdateCamera();
   ///  Render
-	bool Pedro = 1;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
-	if (Pedro) {
-		pParRend->DepthBufUse(); //Pedro
+	if (Curv_Flow_Render) {
+		pParRend->DepthBufUse(); //** Curvature Flow
+		RenderText();
+		DrawBounds();  
+		DrawCollider();
 	}
 	else {
-		DrawBounds();  //Padrao
+		DrawBounds();  
 		DrawCollider();
 		pParRend->display();  // particles
 		RenderText();
 	}
 	glutSwapBuffers();
 	
-	//glutReportErrors();
+	glutReportErrors();
 //	CUT_SAFE_CALL(cutStopTimer(timer[0]));
 }
 

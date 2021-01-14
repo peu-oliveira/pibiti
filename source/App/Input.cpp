@@ -297,6 +297,19 @@ void App::KeyPressed(unsigned char k, int x, int y)
 		exit(0);
 		break;
 
+	case 'q':
+		App::changeBool();
+		pParRend->changeBool();
+		break;
+
+	case 'h':
+		pParRend->raisenIter();
+		break;
+
+	case 'j':
+		pParRend->lownIter();
+		break;
+
 	case 'p':
 		bPaused = !bPaused;
 		break;
@@ -485,6 +498,7 @@ void App::KeySpecial(int k, int x, int y)
 	case GLUT_KEY_F6:
 		fSimTime = 0.f;
 		break;
+
 	case GLUT_KEY_F7:
 		updVisParR();
 		break;

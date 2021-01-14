@@ -2,12 +2,16 @@
 
 #define NumProg 2
 
-
 class ParticleRenderer
 {
 public:
 	ParticleRenderer();  ~ParticleRenderer();
-	bool Pedro = 1;
+	bool Curv_Flow_Render = 0; //** Set the rendering method
+	void changeBool(); //** Change boolean
+	void raisenIter(); //** Change number of iterations
+	void lownIter();
+	int ReturnNIter();
+	int nIter = 0;
 	void display();
 	void display_CF(bool FB);
 	void createTexture();
@@ -15,7 +19,6 @@ public:
 	void createQuad();
 	void drawCubemap();
 	void DepthBufUse();
-	//unsigned int loadCubemap(vector<std::string> faces);
 	void cubemap();
 	//  set
 	void setPositions(float *pos, int nPar) { m_pos = pos;	m_numParticles = nPar; }
@@ -36,25 +39,27 @@ protected:  // data
 public:
 	int m_nProg;
 
-	float *m_pos;	GLuint m_program[NumProg], m_vbo, m_colorVbo, m_scaleProg, gbufferProg, SkyboxProg;
+	float *m_pos;	GLuint m_program[NumProg],m_program1[NumProg], m_vbo, m_colorVbo, m_scaleProg, gbufferProg, SkyboxProg,BFProg;
 	unsigned int skyboxVAO, quadVAO = 0;
 	int m_numParticles, m_window_w, m_window_h;  float m_fov;
 
 	float m_ParRadius, m_ParScale, m_fDiffuse, m_fAmbient, m_fPower, m_fSteps, m_fHueDiff;
 	GLint m_uLocPRadius[NumProg], m_uLocPScale[NumProg], m_uLocDiffuse, gm_uLocDiffuse, m_uLocAmbient, gm_uLocAmbient, m_uLocPower, gm_uLocPower, m_uLocSteps, m_uLocStepsS, m_uLocHueDiff, gPscale, gPradius, scrW, scrH;
+	GLint m_uLocPRadius1[NumProg], m_uLocPScale1[NumProg], m_uLocDiffuse1, gm_uLocDiffuse1, m_uLocAmbient1, gm_uLocAmbient1, m_uLocPower1, gm_uLocPower1, m_uLocSteps1, m_uLocStepsS1, m_uLocHueDiff1,scrW1, scrH1;
 	unsigned int gBuffer, depth, gPosition, gNormal, gAlbedoSpec, depthFB, Zvalue, ColorMap, depth2;
 	GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	GLenum Dattachment[2] = { GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2 };
 	unsigned int rboDepth;
 	int SCR_WIDTH, SCR_HEIGHT;
 
-	static char *vertexShader;
-	static char *vertexShader_Pedro;
-	static char *spherePixelShader[NumProg];
-	static char *spherePixelShader_Pedro[NumProg];
-	static char *scalePixelShader;
-	static char *GvertexShader;
-	static char *GfragmentShader;
+	static char *vertexShader; //** Original shaders
+	static char *Curvature_Flow_Vertex_Shader;
+	static char *spherePixelShader[NumProg]; //** Original shaders
+	static char *Curvature_Flow_Fragment_Shader[NumProg];
+	static char *scalePixelShader; //** Original shaders
+	static char *GvertexShader; //** Shaders for the G Buffer particle rendering 
+	static char *GfragmentShader; //** Shaders for the G Buffer particle rendering 
 	static char *CubemapFragmentShader;
 	static char *CubemapVertexShader;
+	static char *Bilateral_Filter_Fragment_Shader;
 };

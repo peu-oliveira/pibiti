@@ -85,4 +85,8 @@ void App::RenderHelp()
 
 	wr( "1,2 - time bars scale", 1);
 	wr( "3,4 - times average interval", 2);
+
+	wr( "q - Switch rendering", 1);
+	wr( "h/j Raise/Low number of CF iterations", 1);
+
 }

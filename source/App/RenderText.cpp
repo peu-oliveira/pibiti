@@ -22,7 +22,7 @@ void App::RenderText()
 	glPrint(0,y, s, fnt);	//y += Fy;
 
 	glColor3f(0.5, 1.0, 0.5);
-	sprintf(s, "Scene: %d/%d  %s", psys->curScene+1, psys->scenes.size(), psys->scn.title);
+	sprintf(s, "Scene: %d/%d  %s      CF number of iterations: %i", psys->curScene+1, psys->scenes.size(), psys->scn.title, pParRend->nIter);
 	glPrint(300,y, s, fnt);	y += Fy + 5;
 
 	glColor3f(0.5, 0.8, 1.0);

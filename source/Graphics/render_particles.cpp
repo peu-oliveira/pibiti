@@ -12,11 +12,28 @@ ParticleRenderer::ParticleRenderer() : m_pos(0), m_numParticles(0), m_ParRadius(
 {
 	m_nProg = 0 /*0*/;
 	m_program[0] = 0;
+	m_program1[0] = 0;
 	gbufferProg = 0;
 	_initGL();
 }
 
 ParticleRenderer::~ParticleRenderer() { m_pos = 0; }
+
+void ParticleRenderer::changeBool() {
+	Curv_Flow_Render = !Curv_Flow_Render;
+}
+
+void ParticleRenderer::raisenIter() {
+	nIter++;
+}
+
+void ParticleRenderer::lownIter() {
+	if(nIter>0) nIter--;
+}
+
+int ParticleRenderer::ReturnNIter() {
+	return nIter;
+}
 
 void ParticleRenderer::_drawPoints()
 {
@@ -81,12 +98,12 @@ void ParticleRenderer::display()
 void ParticleRenderer::display_CF(bool FB)
 {
 	int i = m_nProg;
-	glUseProgram(m_program[i]); //  pass vars
-	glUniform1i(glGetUniformLocation(m_program[i], "depth"), 0);
-	glUniform1i(glGetUniformLocation(m_program[i], "gPosition"), 1);
-	glUniform1i(glGetUniformLocation(m_program[i], "gNormal"), 2);
-	glUniform1i(glGetUniformLocation(m_program[i], "gAlbedoSpec"), 3);
-	glUniform1i(glGetUniformLocation(m_program[i], "skybox"), 4);
+	glUseProgram(m_program1[i]); //  pass vars
+	glUniform1i(glGetUniformLocation(m_program1[i], "depth"), 0);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gPosition"), 1);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gNormal"), 2);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gAlbedoSpec"), 3);
+	glUniform1i(glGetUniformLocation(m_program1[i], "skybox"), 4);
 
 	if (FB == 1)
 	{
@@ -107,20 +124,20 @@ void ParticleRenderer::display_CF(bool FB)
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 
-	glUniform1f(m_uLocPScale[i], m_ParScale);
-	glUniform1f(m_uLocPRadius[i], m_ParRadius);
+	glUniform1f(m_uLocPScale1[i], m_ParScale);
+	glUniform1f(m_uLocPRadius1[i], m_ParRadius);
 	if (i == 0)
 	{
-		glUniform1f(m_uLocDiffuse, m_fDiffuse);
-		glUniform1f(m_uLocAmbient, m_fAmbient);
-		glUniform1f(m_uLocPower, m_fPower);
-		glUniform1f(scrH, SCR_HEIGHT);
-		glUniform1f(scrW, SCR_WIDTH);
+		glUniform1f(m_uLocDiffuse1, m_fDiffuse);
+		glUniform1f(m_uLocAmbient1, m_fAmbient);
+		glUniform1f(m_uLocPower1, m_fPower);
+		glUniform1f(scrH1, SCR_HEIGHT);
+		glUniform1f(scrW1, SCR_WIDTH);
 	}
 	else
 	{
-		glUniform1f(m_uLocHueDiff, m_fHueDiff);
-		glUniform1f(m_uLocSteps, m_fSteps);
+		glUniform1f(m_uLocHueDiff1, m_fHueDiff);
+		glUniform1f(m_uLocSteps1, m_fSteps);
 		/*glUniform1f( m_uLocStepsS, m_fSteps );*/  }
 
 		//glColor3f(1, 1, 1);
@@ -250,6 +267,7 @@ void ParticleRenderer::drawCubemap()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
+	glUseProgram(0);
 	glDepthFunc(GL_LESS); // set depth function back to default*/
 }
 
@@ -290,7 +308,6 @@ void ParticleRenderer::DepthBufUse()
 	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	createQuad();
-	int nIter = 100;
 	bool FBnum = 1;
 	for (int i = 0; i < nIter; i++)
 	{
@@ -366,12 +383,12 @@ void ParticleRenderer::cubemap()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
 	vector<std::string> faces{
-		("assets/skybox/px.png"),
-		("assets/skybox/nx.png"),
-		("assets/skybox/py.png"),
-		("assets/skybox/ny.png"),
-		("assets/skybox/pz.png"),
-		("assets/skybox/nz.png"),
+		("assets/textures/px.png"),
+		("assets/textures/nx.png"),
+		("assets/textures/py.png"),
+		("assets/textures/ny.png"),
+		("assets/textures/pz.png"),
+		("assets/textures/nz.png"),
 	};
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -484,6 +501,9 @@ void ParticleRenderer::_initGL()
 	m_scaleProg = _compileProgram(NULL, scalePixelShader);
 	gbufferProg = _compileProgramA(GvertexShader, GfragmentShader);
 	SkyboxProg = _compileProgram(CubemapVertexShader, CubemapFragmentShader);
+	BFProg = _compileProgram(Curvature_Flow_Vertex_Shader, Bilateral_Filter_Fragment_Shader);
+
+	//** Original rendering
 
 	for (int i = 0; i < NumProg; i++)
 	{
@@ -493,33 +513,43 @@ void ParticleRenderer::_initGL()
 		m_uLocPScale[i] = glGetUniformLocation(m_program[i], "pointScale");
 		m_uLocPRadius[i] = glGetUniformLocation(m_program[i], "pointRadius");
 	}
-	if (Pedro)
-	{
+
+	//** CF rendering
+
 		for (int i = 0; i < NumProg; i++)
 		{
-			m_program[i] = _compileProgram(vertexShader_Pedro, spherePixelShader_Pedro[i]);
+			m_program1[i] = _compileProgram(Curvature_Flow_Vertex_Shader, Curvature_Flow_Fragment_Shader[i]);
 
 			//  vars loc
-			m_uLocPScale[i] = glGetUniformLocation(m_program[i], "pointScale");
-			m_uLocPRadius[i] = glGetUniformLocation(m_program[i], "pointRadius");
+			m_uLocPScale1[i] = glGetUniformLocation(m_program1[i], "pointScale");
+			m_uLocPRadius1[i] = glGetUniformLocation(m_program1[i], "pointRadius");
 		}
-	}
-
-	scrH = glGetUniformLocation(m_program[0], "SCR_HEIGHT");
-	scrW = glGetUniformLocation(m_program[0], "SCR_WIDTH");
+	
+//** Uniforms for original rendering
 	m_uLocHueDiff = glGetUniformLocation(m_program[1], "fHueDiff");
 	m_uLocDiffuse = glGetUniformLocation(m_program[0], "fDiffuse");
 	m_uLocAmbient = glGetUniformLocation(m_program[0], "fAmbient");
 	m_uLocPower = glGetUniformLocation(m_program[0], "fPower");
+	m_uLocSteps = glGetUniformLocation(m_program[1], "fSteps");
+
+	m_uLocStepsS = glGetUniformLocation(m_scaleProg, "fSteps");
+
+//** Uniforms for CF rendering
+	scrH1 = glGetUniformLocation(m_program1[0], "SCR_HEIGHT");
+	scrW1 = glGetUniformLocation(m_program1[0], "SCR_WIDTH");
+	m_uLocHueDiff1 = glGetUniformLocation(m_program1[1], "fHueDiff");
+	m_uLocDiffuse1 = glGetUniformLocation(m_program1[0], "fDiffuse");
+	m_uLocAmbient1 = glGetUniformLocation(m_program1[0], "fAmbient");
+	m_uLocPower1 = glGetUniformLocation(m_program1[0], "fPower");
+	m_uLocSteps1 = glGetUniformLocation(m_program1[1], "fSteps");
+
 	gm_uLocDiffuse = glGetUniformLocation(gbufferProg, "fDiffuse");
 	gm_uLocAmbient = glGetUniformLocation(gbufferProg, "fAmbient");
 	gm_uLocPower = glGetUniformLocation(gbufferProg, "fPower");
-
-	m_uLocSteps = glGetUniformLocation(m_program[1], "fSteps");
-	m_uLocStepsS = glGetUniformLocation(m_scaleProg, "fSteps");
-
 	gPradius = glGetUniformLocation(gbufferProg, "pointScale");
 	gPscale = glGetUniformLocation(gbufferProg, "pointRadius");
+
+
 
 	glClampColorARB(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
 	glClampColorARB(GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);

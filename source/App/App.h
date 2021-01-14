@@ -58,6 +58,7 @@ public:
 	static void init(), initParams(), destroy();
 	static void Render(), RenderText(), RenderHelp(), DrawBounds(), DrawCollider();
 	static void Simulate();
+	static void changeBool();
 
 	//  Input
 	static void Mouse(int button, int state, int x, int y);
