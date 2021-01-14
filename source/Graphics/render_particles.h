@@ -6,10 +6,12 @@ class ParticleRenderer
 {
 public:
 	ParticleRenderer();  ~ParticleRenderer();
-	bool Pedro = 0;
-	void changeBool();
-	void raisenIter();
+	bool Curv_Flow_Render = 0; //** Set the rendering method
+	void changeBool(); //** Change boolean
+	void raisenIter(); //** Change number of iterations
 	void lownIter();
+	int ReturnNIter();
+	int nIter = 0;
 	void display();
 	void display_CF(bool FB);
 	void createTexture();
@@ -17,9 +19,6 @@ public:
 	void createQuad();
 	void drawCubemap();
 	void DepthBufUse();
-	int ReturnNIter();
-	int nIter = 0;
-	//unsigned int loadCubemap(vector<std::string> faces);
 	void cubemap();
 	//  set
 	void setPositions(float *pos, int nPar) { m_pos = pos;	m_numParticles = nPar; }
@@ -40,7 +39,7 @@ protected:  // data
 public:
 	int m_nProg;
 
-	float *m_pos;	GLuint m_program[NumProg],m_program1[NumProg], m_vbo, m_colorVbo, m_scaleProg, gbufferProg, SkyboxProg;
+	float *m_pos;	GLuint m_program[NumProg],m_program1[NumProg], m_vbo, m_colorVbo, m_scaleProg, gbufferProg, SkyboxProg,BFProg;
 	unsigned int skyboxVAO, quadVAO = 0;
 	int m_numParticles, m_window_w, m_window_h;  float m_fov;
 
@@ -53,13 +52,14 @@ public:
 	unsigned int rboDepth;
 	int SCR_WIDTH, SCR_HEIGHT;
 
-	static char *vertexShader;
-	static char *vertexShader_Pedro;
-	static char *spherePixelShader[NumProg];
-	static char *spherePixelShader_Pedro[NumProg];
-	static char *scalePixelShader;
-	static char *GvertexShader;
-	static char *GfragmentShader;
+	static char *vertexShader; //** Original shaders
+	static char *Curvature_Flow_Vertex_Shader;
+	static char *spherePixelShader[NumProg]; //** Original shaders
+	static char *Curvature_Flow_Fragment_Shader[NumProg];
+	static char *scalePixelShader; //** Original shaders
+	static char *GvertexShader; //** Shaders for the G Buffer particle rendering 
+	static char *GfragmentShader; //** Shaders for the G Buffer particle rendering 
 	static char *CubemapFragmentShader;
 	static char *CubemapVertexShader;
+	static char *Bilateral_Filter_Fragment_Shader;
 };

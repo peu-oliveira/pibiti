@@ -1,38 +1,11 @@
-#include "header.h"
+﻿#include "header.h"
 
 #include "render_particles.h"
 
 #define STRING(A) #A
 #define STRING2(A, B) #A #B
 
-///  Vertex shader
-char *ParticleRenderer::vertexShader =
-	STRING(#version 130 \n
-		uniform float pointRadius; // point size in world space
-		uniform float pointScale;  // scale to calculate size in pixels
-
-		void main() {
-			// calculate window-space point size
-			vec3 posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
-			float dist = length(posEye);
-			gl_PointSize = pointRadius * (pointScale / dist);
-
-			gl_TexCoord[0] = gl_MultiTexCoord0;
-			gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
-
-			gl_FrontColor = gl_Color;
-		});
-
-char *ParticleRenderer::vertexShader_Pedro =
-	STRING(#version 330 core \n
-			   layout(location = 0) in vec3 aPos;
-		   layout(location = 1) in vec2 aTexCoords;
-		   out vec2 TexCoords;
-
-		   void main() {
-			   TexCoords = aTexCoords;
-			   gl_Position = vec4(aPos, 1.0);
-		   });
+//** Modified particle rendering shaders (for the G buffer)
 
 char *ParticleRenderer::GvertexShader =
 	STRING(#version 130 \n
@@ -56,6 +29,38 @@ char *ParticleRenderer::GvertexShader =
 			gl_FrontColor = gl_Color;
 		});
 
+char *ParticleRenderer::GfragmentShader =
+STRING(#version 130\n
+uniform float fAmbient; // factors
+uniform float fDiffuse;
+uniform float fPower;
+
+in vec3 aPos;
+in vec3 posEye;
+out vec3 gPosition;
+out vec3 gNormal;
+out vec4 gAlbedoSpec;
+
+void main() {
+	const vec3 lightDir = vec3(0.577, 0.577, 0.577);
+	// calculate normal from texture coordinates
+	vec3 n;
+	n.xy = gl_TexCoord[0].xy * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+	float mag = dot(n.xy, n.xy);
+	if (mag > 1.0)
+		discard; // don't draw outside circle
+	n.z = sqrt(1.0 - mag);
+
+	// calculate lighting
+	float diffuse = max(0.0, dot(lightDir, n));
+
+	gNormal = n;
+	gPosition = normalize(aPos - posEye);
+	gAlbedoSpec = gl_Color; // *(fAmbient + fDiffuse * diffuse);
+});
+
+//** Cubemap shaders
+
 char *ParticleRenderer::CubemapVertexShader =
 	STRING(#version 130 \n
 
@@ -74,37 +79,7 @@ char *ParticleRenderer::CubemapFragmentShader =
 		out vec4 FragColor;
 		void main() {
 			FragColor = texture(skybox, TexCoords);
-		});
-
-char *ParticleRenderer::GfragmentShader =
-	STRING(#version 130\n
-		uniform float fAmbient; // factors
-		uniform float fDiffuse;
-		uniform float fPower;
-
-		in vec3 aPos;
-		in vec3 posEye;
-		out vec3 gPosition;
-		out vec3 gNormal;
-		out vec4 gAlbedoSpec;
-
-		void main() {
-			const vec3 lightDir = vec3(0.577, 0.577, 0.577);
-			// calculate normal from texture coordinates
-			vec3 n;
-			n.xy = gl_TexCoord[0].xy * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
-			float mag = dot(n.xy, n.xy);
-			if (mag > 1.0)
-				discard; // don't draw outside circle
-			n.z = sqrt(1.0 - mag);
-
-			// calculate lighting
-			float diffuse = max(0.0, dot(lightDir, n));
-
-			gNormal = n;
-			gPosition = normalize(aPos - posEye);
-			gAlbedoSpec = gl_Color; // *(fAmbient + fDiffuse * diffuse);
-		});
+	});
 
 #define HUE2RGB \
 	"/*int ap[6] = const int[6](2,2,0,0,1,1);\
@@ -143,12 +118,24 @@ char *ParticleRenderer::GfragmentShader =
 		return float4(rgb, 1.f);\
 	}"
 
-///  Pixel shader  for rendering points as shaded spheres
+//** Curvature Flow shaders
 
-char *ParticleRenderer::spherePixelShader_Pedro[NumProg] = {
+char *ParticleRenderer::Curvature_Flow_Vertex_Shader =
+STRING(#version 330 core \n
+	layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec2 aTexCoords;
+out vec2 TexCoords;
+
+void main() {
+	TexCoords = aTexCoords;
+	gl_Position = vec4(aPos, 1.0);
+});
+
+
+char *ParticleRenderer::Curvature_Flow_Fragment_Shader[NumProg] = {
 	STRING(#version 330 core\n
 			// Diffuse
-			uniform float fAmbient; // factors
+		uniform float fAmbient; // factors
 		uniform float fDiffuse;
 		uniform float fPower;
 		uniform float SCR_HEIGHT;
@@ -313,6 +300,25 @@ char *ParticleRenderer::spherePixelShader_Pedro[NumProg] = {
 
 		)};
 
+//** Original shaders
+
+char *ParticleRenderer::vertexShader =
+	STRING(#version 130 \n
+		uniform float pointRadius; // point size in world space
+		uniform float pointScale;  // scale to calculate size in pixels
+
+		void main() {
+			// calculate window-space point size
+			vec3 posEye = vec3(gl_ModelViewMatrix * vec4(gl_Vertex.xyz, 1.0));
+			float dist = length(posEye);
+			gl_PointSize = pointRadius * (pointScale / dist);
+
+			gl_TexCoord[0] = gl_MultiTexCoord0;
+			gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
+
+			gl_FrontColor = gl_Color;
+});
+
 char *ParticleRenderer::spherePixelShader[NumProg] = {
 
 	STRING( ///  Diffuse
@@ -403,3 +409,51 @@ char *ParticleRenderer::scalePixelShader =
 		}
 
 	);
+
+//** Bilateral Filter Shader (not ready)
+
+char *ParticleRenderer::Bilateral_Filter_Fragment_Shader =
+STRING(#version 330 \n
+
+in vec2 textureCoords;
+out vec4 smoothedParticleDepth;
+
+uniform sampler2D DepthTexture;
+uniform float SCR_HEIGHT;
+uniform float SCR_WIDTH;
+uniform float Kernel[50];
+uniform float DomainSigma;
+uniform int KernelCenter;
+
+float normpdf(in float x, in float sigma)
+{
+	return 0.39894f * exp(−0.5 f*x*x / (sigma * sigma) ) / sigma;
+}
+void main()
+{
+		vec4 fragmentOriginalValue = texture(DepthTexture, textureCoords);
+		if(fragmentOriginalValue.r == 0.0f)
+		{
+			discard;
+		}
+		float fragmentFinalValue = 0.0f;
+		float z = 0.0f;
+		float currentValue;
+		float smoothingFactor;
+		float bZ = 1.0 / normpdf(0.0, DomainSigma);
+		//Apply BF
+			for(int i = −KernelCenter; i <= KernelCenter; ++i)
+			{
+				for(int j = −KernelCenter; j <= KernelCenter; ++j)
+				{
+				currentValue = texture(DepthTexture, (textureCoords + (vec2(float(i) / SCR_WIDTH, float(j)) / SCR_HEIGHT))).r;
+				smoothingFactor = normpdf(currentValue − fragmentOriginalValue.r, DomainSigma)*bZ* Kernel[KernelCenter + i] * Kernel[KernelCenter + j];
+					z += smoothingFactor;
+					fragmentFinalValue += smoothingFactor * currentValue;
+				}
+			}
+
+	float fragmentDepth = fragmentFinalValue / z;
+	smoothedParticleDepth = vec4(vec3(fragmentDepth), fragmentOriginalValue.a);
+	glFragDepth = fragmentDepth;
+});

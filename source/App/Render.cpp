@@ -13,11 +13,11 @@ void App::Simulate()
 	fSimTime += psys->scn.params.timeStep;
 }
 
-bool Pedro = 0;
+bool Curv_Flow_Render = 0; //** Set renderization method
 
 void App::changeBool()
 {
-	Pedro = !Pedro;
+	Curv_Flow_Render = !Curv_Flow_Render;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -33,14 +33,14 @@ void App::Render()
 	UpdateCamera();
   ///  Render
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
-	if (Pedro) {
-		pParRend->DepthBufUse(); //Pedro
+	if (Curv_Flow_Render) {
+		pParRend->DepthBufUse(); //** Curvature Flow
 		RenderText();
-		DrawBounds();  //Padrao
+		DrawBounds();  
 		DrawCollider();
 	}
 	else {
-		DrawBounds();  //Padrao
+		DrawBounds();  
 		DrawCollider();
 		pParRend->display();  // particles
 		RenderText();

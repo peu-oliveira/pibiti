@@ -20,7 +20,7 @@ ParticleRenderer::ParticleRenderer() : m_pos(0), m_numParticles(0), m_ParRadius(
 ParticleRenderer::~ParticleRenderer() { m_pos = 0; }
 
 void ParticleRenderer::changeBool() {
-	Pedro = !Pedro;
+	Curv_Flow_Render = !Curv_Flow_Render;
 }
 
 void ParticleRenderer::raisenIter() {
@@ -383,12 +383,12 @@ void ParticleRenderer::cubemap()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
 	vector<std::string> faces{
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/px.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/nx.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/py.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/ny.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/pz.png"),
-		("C:/Users/Usuario/source/repos/Project1/Uploads/skybox/skybox/nz.png"),
+		("assets/textures/px.png"),
+		("assets/textures/nx.png"),
+		("assets/textures/py.png"),
+		("assets/textures/ny.png"),
+		("assets/textures/pz.png"),
+		("assets/textures/nz.png"),
 	};
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -501,6 +501,9 @@ void ParticleRenderer::_initGL()
 	m_scaleProg = _compileProgram(NULL, scalePixelShader);
 	gbufferProg = _compileProgramA(GvertexShader, GfragmentShader);
 	SkyboxProg = _compileProgram(CubemapVertexShader, CubemapFragmentShader);
+	BFProg = _compileProgram(Curvature_Flow_Vertex_Shader, Bilateral_Filter_Fragment_Shader);
+
+	//** Original rendering
 
 	for (int i = 0; i < NumProg; i++)
 	{
@@ -511,24 +514,27 @@ void ParticleRenderer::_initGL()
 		m_uLocPRadius[i] = glGetUniformLocation(m_program[i], "pointRadius");
 	}
 
+	//** CF rendering
+
 		for (int i = 0; i < NumProg; i++)
 		{
-			m_program1[i] = _compileProgram(vertexShader_Pedro, spherePixelShader_Pedro[i]);
+			m_program1[i] = _compileProgram(Curvature_Flow_Vertex_Shader, Curvature_Flow_Fragment_Shader[i]);
 
 			//  vars loc
 			m_uLocPScale1[i] = glGetUniformLocation(m_program1[i], "pointScale");
 			m_uLocPRadius1[i] = glGetUniformLocation(m_program1[i], "pointRadius");
 		}
 	
-
-	scrH = glGetUniformLocation(m_program[0], "SCR_HEIGHT");
-	scrW = glGetUniformLocation(m_program[0], "SCR_WIDTH");
+//** Uniforms for original rendering
 	m_uLocHueDiff = glGetUniformLocation(m_program[1], "fHueDiff");
 	m_uLocDiffuse = glGetUniformLocation(m_program[0], "fDiffuse");
 	m_uLocAmbient = glGetUniformLocation(m_program[0], "fAmbient");
 	m_uLocPower = glGetUniformLocation(m_program[0], "fPower");
 	m_uLocSteps = glGetUniformLocation(m_program[1], "fSteps");
 
+	m_uLocStepsS = glGetUniformLocation(m_scaleProg, "fSteps");
+
+//** Uniforms for CF rendering
 	scrH1 = glGetUniformLocation(m_program1[0], "SCR_HEIGHT");
 	scrW1 = glGetUniformLocation(m_program1[0], "SCR_WIDTH");
 	m_uLocHueDiff1 = glGetUniformLocation(m_program1[1], "fHueDiff");
@@ -543,7 +549,6 @@ void ParticleRenderer::_initGL()
 	gPradius = glGetUniformLocation(gbufferProg, "pointScale");
 	gPscale = glGetUniformLocation(gbufferProg, "pointRadius");
 
-	m_uLocStepsS = glGetUniformLocation(m_scaleProg, "fSteps");
 
 
 	glClampColorARB(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
