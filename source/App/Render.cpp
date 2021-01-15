@@ -34,7 +34,7 @@ void App::Render()
   ///  Render
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
 	if (Curv_Flow_Render) {
-		pParRend->DepthBufUse(); //** Curvature Flow
+		pParRend->CurvatureFlow_Use(); //** Curvature Flow
 		RenderText();
 		DrawBounds();  
 		DrawCollider();

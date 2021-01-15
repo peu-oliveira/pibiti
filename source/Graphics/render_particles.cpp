@@ -2,6 +2,8 @@
 #include "render_particles.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <fstream>
+#include <sstream> 
 
 unsigned int cubemapTexture;
 bool isTexCreated = 0;
@@ -35,6 +37,15 @@ int ParticleRenderer::ReturnNIter() {
 	return nIter;
 }
 
+const std::string parseFileToString(const char* fileName)
+{
+	std::fstream fileStream;
+	fileStream.open(fileName, std::fstream::in);
+	std::stringstream fileSource;
+	fileSource << fileStream.rdbuf();
+		return  fileSource.str();
+}
+//** Original rendering [drawPoints() and display()]
 void ParticleRenderer::_drawPoints()
 {
 	if (!m_vbo)
@@ -95,6 +106,7 @@ void ParticleRenderer::display()
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
 }
+//** Render using curvature flow
 void ParticleRenderer::display_CF(bool FB)
 {
 	int i = m_nProg;
@@ -146,7 +158,7 @@ void ParticleRenderer::display_CF(bool FB)
 		glUseProgram(0);
 		glDisable(GL_POINT_SPRITE_ARB);
 }
-
+//** Create textures
 void ParticleRenderer::createTexture()
 {
 	cout << "tex created" << endl;
@@ -209,7 +221,7 @@ void ParticleRenderer::createTexture()
 	glDrawBuffers(2, Dattachment);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-
+//** Create quad for screen-space rendering
 void ParticleRenderer::createQuad()
 {
 	unsigned int quadVBO;
@@ -250,14 +262,14 @@ void ParticleRenderer::createQuad()
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
 	}
 }
-
+//** Render quad for screen-space
 void ParticleRenderer::renderQuad()
 {
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 }
-
+//** Draw cubemap
 void ParticleRenderer::drawCubemap()
 {
 	glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -270,8 +282,8 @@ void ParticleRenderer::drawCubemap()
 	glUseProgram(0);
 	glDepthFunc(GL_LESS); // set depth function back to default*/
 }
-
-void ParticleRenderer::DepthBufUse()
+//** Steps for curvature flow rendering
+void ParticleRenderer::CurvatureFlow_Use()
 {
 	if (isTexCreated == 0)
 	{
@@ -325,7 +337,7 @@ void ParticleRenderer::DepthBufUse()
 	display_CF(FBnum);
 	drawCubemap();
 }
-
+//** Create cubemap
 void ParticleRenderer::cubemap()
 {
 	float skyboxVertices[] = {
@@ -498,13 +510,14 @@ GLuint ParticleRenderer::_compileProgramA(const char *vsource, const char *fsour
 
 void ParticleRenderer::_initGL()
 {
+	//** Compile shaders
 	m_scaleProg = _compileProgram(NULL, scalePixelShader);
-	gbufferProg = _compileProgramA(GvertexShader, GfragmentShader);
-	SkyboxProg = _compileProgram(CubemapVertexShader, CubemapFragmentShader);
-	BFProg = _compileProgram(Curvature_Flow_Vertex_Shader, Bilateral_Filter_Fragment_Shader);
+	gbufferProg = _compileProgramA(parseFileToString("source/Graphics/shaders/Gbuffer.vs").c_str(), parseFileToString("source/Graphics/shaders/Gbuffer.fs").c_str());
+	SkyboxProg = _compileProgram(parseFileToString("source/Graphics/shaders/Cubemap.vs").c_str(), parseFileToString("source/Graphics/shaders/Cubemap.fs").c_str());
+	BFProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/BilateralFilter.fs").c_str());
+	//cout << parseFileToString("source/Graphics/shaders/BilateralFilter.fs").c_str();
 
 	//** Original rendering
-
 	for (int i = 0; i < NumProg; i++)
 	{
 		m_program[i] = _compileProgram(vertexShader, spherePixelShader[i]);
@@ -515,15 +528,14 @@ void ParticleRenderer::_initGL()
 	}
 
 	//** CF rendering
+	for (int i = 0; i < NumProg; i++)
+	{
+		m_program1[i] = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/CurvatureFlow.fs").c_str());
 
-		for (int i = 0; i < NumProg; i++)
-		{
-			m_program1[i] = _compileProgram(Curvature_Flow_Vertex_Shader, Curvature_Flow_Fragment_Shader[i]);
-
-			//  vars loc
-			m_uLocPScale1[i] = glGetUniformLocation(m_program1[i], "pointScale");
-			m_uLocPRadius1[i] = glGetUniformLocation(m_program1[i], "pointRadius");
-		}
+		//  vars loc
+		m_uLocPScale1[i] = glGetUniformLocation(m_program1[i], "pointScale");
+		m_uLocPRadius1[i] = glGetUniformLocation(m_program1[i], "pointRadius");
+	}
 	
 //** Uniforms for original rendering
 	m_uLocHueDiff = glGetUniformLocation(m_program[1], "fHueDiff");
