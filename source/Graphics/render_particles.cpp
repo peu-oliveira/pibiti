@@ -106,58 +106,7 @@ void ParticleRenderer::display()
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
 }
-//** Render using curvature flow
-void ParticleRenderer::display_CF(bool FB)
-{
-	int i = m_nProg;
-	glUseProgram(m_program1[i]); //  pass vars
-	glUniform1i(glGetUniformLocation(m_program1[i], "depth"), 0);
-	glUniform1i(glGetUniformLocation(m_program1[i], "gPosition"), 1);
-	glUniform1i(glGetUniformLocation(m_program1[i], "gNormal"), 2);
-	glUniform1i(glGetUniformLocation(m_program1[i], "gAlbedoSpec"), 3);
-	glUniform1i(glGetUniformLocation(m_program1[i], "skybox"), 4);
 
-	if (FB == 1)
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depth);
-	}
-	else
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depth2);
-	}
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gPosition);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, gNormal);
-	//glActiveTexture(GL_TEXTURE3);
-	//glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-
-	glUniform1f(m_uLocPScale1[i], m_ParScale);
-	glUniform1f(m_uLocPRadius1[i], m_ParRadius);
-	if (i == 0)
-	{
-		glUniform1f(m_uLocDiffuse1, m_fDiffuse);
-		glUniform1f(m_uLocAmbient1, m_fAmbient);
-		glUniform1f(m_uLocPower1, m_fPower);
-		glUniform1f(scrH1, SCR_HEIGHT);
-		glUniform1f(scrW1, SCR_WIDTH);
-	}
-	else
-	{
-		glUniform1f(m_uLocHueDiff1, m_fHueDiff);
-		glUniform1f(m_uLocSteps1, m_fSteps);
-		/*glUniform1f( m_uLocStepsS, m_fSteps );*/  }
-
-		//glColor3f(1, 1, 1);
-		renderQuad();
-
-		glUseProgram(0);
-		glDisable(GL_POINT_SPRITE_ARB);
-}
 //** Create textures
 void ParticleRenderer::createTexture()
 {
@@ -283,7 +232,7 @@ void ParticleRenderer::drawCubemap()
 	glDepthFunc(GL_LESS); // set depth function back to default*/
 }
 //** Steps for curvature flow rendering
-void ParticleRenderer::CurvatureFlow_Use()
+void ParticleRenderer::ScreenSpaceRender()
 {
 	if (isTexCreated == 0)
 	{
@@ -309,7 +258,6 @@ void ParticleRenderer::CurvatureFlow_Use()
 	_drawPoints();
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
-	//drawCubemap();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glDepthMask(GL_FALSE);
 	glEnable(GL_POINT_SPRITE_ARB);
@@ -320,22 +268,130 @@ void ParticleRenderer::CurvatureFlow_Use()
 	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	createQuad();
-	bool FBnum = 1;
-	for (int i = 0; i < nIter; i++)
-	{
-		if (FBnum == 1)
+	//BilateralFilter_Use(); **Still not working properly
+	CurvatureFlow_Use();
+	drawCubemap();
+}
+
+void ParticleRenderer::BilateralFilter_Use() {
+	bool FB = 1;
+
+	for (int i = 0; i < nIter; i++) {
+
+		if (FB == 1)
 			glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		display_CF(FBnum);
+		display_BF(FB);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		FBnum = !FBnum;
+		FB = !FB;
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glDepthMask(GL_TRUE);
+	display_BF(FB);
+}
+
+void ParticleRenderer::display_BF(bool FB) {
+	
+	float sigma=0.01,kernel[50];
+	int KernelC = 15;
+	
+	glUseProgram(BFProg);
+
+	glUniform1i(glGetUniformLocation(BFProg, "DepthTexture"), 0);
+	glUniform1f(scrH, SCR_HEIGHT);
+	glUniform1f(scrW, SCR_WIDTH);
+	glUniform1f(SigmaDomain, sigma);
+	//glUniform1f(SigmaDomain, sigma);
+	glUniform1i(KernelCenter, KernelC);
+
+	if (FB == 1)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depth);
+	}
+	else
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depth2);
+	}
+
+	renderQuad();
+
+	glUseProgram(0);
+}
+
+void ParticleRenderer::CurvatureFlow_Use()
+{
+bool FBnum = 1;
+for (int i = 0; i < nIter; i++)
+{
+	if (FBnum == 1)
+		glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
+	else
+		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	display_CF(FBnum);
-	drawCubemap();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	FBnum = !FBnum;
+}
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//glDepthMask(GL_TRUE);
+display_CF(FBnum);
+}
+
+//** Render using curvature flow
+void ParticleRenderer::display_CF(bool FB)
+{
+	int i = m_nProg;
+	glUseProgram(m_program1[i]); //  pass vars
+	glUniform1i(glGetUniformLocation(m_program1[i], "depth"), 0);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gPosition"), 1);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gNormal"), 2);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gAlbedoSpec"), 3);
+	glUniform1i(glGetUniformLocation(m_program1[i], "skybox"), 4);
+
+	if (FB == 1)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depth);
+	}
+	else
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depth2);
+	}
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+	//glActiveTexture(GL_TEXTURE3);
+	//glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+	glUniform1f(m_uLocPScale1[i], m_ParScale);
+	glUniform1f(m_uLocPRadius1[i], m_ParRadius);
+	if (i == 0)
+	{
+		glUniform1f(m_uLocDiffuse1, m_fDiffuse);
+		glUniform1f(m_uLocAmbient1, m_fAmbient);
+		glUniform1f(m_uLocPower1, m_fPower);
+		glUniform1f(scrH1, SCR_HEIGHT);
+		glUniform1f(scrW1, SCR_WIDTH);
+	}
+	else
+	{
+		glUniform1f(m_uLocHueDiff1, m_fHueDiff);
+		glUniform1f(m_uLocSteps1, m_fSteps);
+		/*glUniform1f( m_uLocStepsS, m_fSteps );*/
+	}
+
+	//glColor3f(1, 1, 1);
+	renderQuad();
+
+	glUseProgram(0);
+	glDisable(GL_POINT_SPRITE_ARB);
 }
 //** Create cubemap
 void ParticleRenderer::cubemap()
@@ -560,6 +616,13 @@ void ParticleRenderer::_initGL()
 	gm_uLocPower = glGetUniformLocation(gbufferProg, "fPower");
 	gPradius = glGetUniformLocation(gbufferProg, "pointScale");
 	gPscale = glGetUniformLocation(gbufferProg, "pointRadius");
+
+//** Uniforms for BF rendering
+	scrH = glGetUniformLocation(BFProg, "SCR_HEIGHT");
+	scrW = glGetUniformLocation(BFProg, "SCR_WIDTH");
+	SigmaDomain = glGetUniformLocation(BFProg, "DomainSigma");
+	KernelCenter = glGetUniformLocation(BFProg, "KernelCenter");
+	//Kernel[] = glGetUniformLocation(BFProg, "Kernel");
 
 
 
