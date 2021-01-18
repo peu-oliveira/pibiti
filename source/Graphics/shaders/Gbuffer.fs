@@ -22,7 +22,7 @@ void main() {
 	// calculate lighting
 	float diffuse = max(0.0, dot(lightDir, n));
 
-	gNormal = n;
-	gPosition = normalize(aPos - posEye);
+	gNormal = aPos;
+	gPosition = aPos;
 	gAlbedoSpec = gl_Color; // *(fAmbient + fDiffuse * diffuse);
 }

@@ -1,7 +1,7 @@
-#version 330 \n
+#version 330 core
 
-in vec2 textureCoords;
-out vec4 smoothedParticleDepth;
+in vec2 TexCoords;
+layout (location = 0) out vec4 smoothedParticleDepth;
 
 uniform sampler2D DepthTexture;
 uniform float SCR_HEIGHT;
@@ -16,8 +16,8 @@ float normpdf(in float x, in float sigma)
 }
 void main()
 {
-		vec4 fragmentOriginalValue = texture(DepthTexture, textureCoords);
-		if(fragmentOriginalValue.r == 0.0f)
+		vec4 fragmentOriginalValue = texture(DepthTexture, TexCoords);
+		if(fragmentOriginalValue.r == 0.0f || fragmentOriginalValue.r == 1.0f)
 		{
 			discard;
 		}
@@ -27,18 +27,23 @@ void main()
 		float smoothingFactor;
 		float bZ = 1.0 / normpdf(0.0, DomainSigma);
 		//Apply BF
-			for(int i = −KernelCenter; i <= KernelCenter; ++i)
+			for(int i = -KernelCenter; i <= KernelCenter; ++i)
 			{
-				for(int j = −KernelCenter; j <= KernelCenter; ++j)
+				for(int j = -KernelCenter; j <= KernelCenter; ++j)
 				{
-				currentValue = texture(DepthTexture, (textureCoords + (vec2(float(i) / SCR_WIDTH, float(j)) / SCR_HEIGHT))).r;
-				smoothingFactor = normpdf(currentValue − fragmentOriginalValue.r, DomainSigma)*bZ* Kernel[KernelCenter + i] * Kernel[KernelCenter + j];
+				currentValue = texture(DepthTexture, (TexCoords + (vec2(float(i) / SCR_WIDTH, float(j)) / SCR_HEIGHT))).r;
+				//smoothingFactor = normpdf(currentValue - fragmentOriginalValue.r, DomainSigma)*bZ* Kernel[KernelCenter + i] * Kernel[KernelCenter + j];
+				float Fj = j*1.0f;
+				float Fi = i*1.0f;
+				smoothingFactor = normpdf(currentValue - fragmentOriginalValue.r, DomainSigma)*exp(-Fi*Fi*0.1)* exp(-Fj*Fj*0.1);
 					z += smoothingFactor;
 					fragmentFinalValue += smoothingFactor * currentValue;
 				}
 			}
 
 	float fragmentDepth = fragmentFinalValue / z;
-	smoothedParticleDepth = vec4(vec3(fragmentDepth), fragmentOriginalValue.a);
-	glFragDepth = fragmentDepth;
+	//smoothedParticleDepth = vec4(vec3(fragmentDepth), fragmentOriginalValue.a);
+	smoothedParticleDepth = vec4(fragmentOriginalValue);
+	gl_FragDepth = fragmentDepth;
+
 }

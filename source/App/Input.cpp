@@ -550,12 +550,10 @@ void App::UpdateCamera()
 	Emitter &em = sc.emit[sc.ce];
 	for (int iter = 0; iter < 3; ++iter)
 	{
-		/*
-		 *camPosLag += (sc.camPos - camPosLag) * inertia;
-		 *camRotLag += (sc.camRot - camRotLag) * inertia;
-		 *em.posLag += (em.pos - em.posLag) * inertia;
-		 *em.rotLag += (em.rot - em.rotLag) * inertia;
-         */
+		 camPosLag += (sc.camPos - camPosLag) * inertia;
+		 camRotLag += (sc.camRot - camRotLag) * inertia;
+		 em.posLag += (em.pos - em.posLag) * inertia;
+		 em.rotLag += (em.rot - em.rotLag) * inertia;     
 	}
 
 	glTranslatef(camPosLag.x, camPosLag.y, camPosLag.z);

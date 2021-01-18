@@ -32,7 +32,7 @@ Timer::Timer()
 
 bool Timer::update(bool updFR)
 {
-#if defined(__WIN32)
+#if defined(_WIN32)
 	if (!QueryPerformanceCounter(&CC))
 		return true;
 

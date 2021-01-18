@@ -14,10 +14,13 @@ void App::Simulate()
 }
 
 bool Curv_Flow_Render = 0; //** Set renderization method
+int RenderMethod = 0;
 
 void App::changeBool()
 {
-	Curv_Flow_Render = !Curv_Flow_Render;
+	if(RenderMethod<2)
+	RenderMethod++;
+	else RenderMethod = 0;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -33,8 +36,8 @@ void App::Render()
 	UpdateCamera();
   ///  Render
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
-	if (Curv_Flow_Render) {
-		pParRend->CurvatureFlow_Use(); //** Curvature Flow
+	if (RenderMethod==1 || RenderMethod==2) {
+		pParRend->ScreenSpaceRender(); //** Curvature Flow
 		RenderText();
 		DrawBounds();  
 		DrawCollider();

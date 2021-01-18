@@ -1,12 +1,16 @@
-#version 330 core
+﻿#version 330 core
 	
 		uniform float fAmbient; // factors
 		uniform float fDiffuse;
 		uniform float fPower;
 		uniform float SCR_HEIGHT;
 		uniform float SCR_WIDTH;
+		uniform float camPosx;
+		uniform float camPosy;
+		uniform float camPosz;
 
 		layout(location = 0) out vec4 FragColor;
+		layout(location = 1) out vec3 fNormal;
 		in vec2 TexCoords;
 		uniform sampler2D depth;
 		uniform sampler2D gPosition;
@@ -14,6 +18,12 @@
 		//uniform sampler2D gAlbedoSpec;
 		uniform samplerCube skybox;
 		vec3 currNorm = vec3(0.0);
+
+/*vec3 eyeSpacePos(vec2 pos){
+ float depth = texture ( depth , pos ).x ;
+ pos = ( pos - vec2 ( 0.5))*2.0;
+ return ( depth * vec3(-pos.x * Projection[0][0] , -pos.y * Projection[1][1] , 1.0 ) ) ;
+}*/
 
 		float dzdx(int n) {
 			if (TexCoords.y >= 1 || TexCoords.x >= 1 || TexCoords.y < 0 || TexCoords.x < 0)
@@ -92,22 +102,23 @@
 
 		void main() {
 			vec3 fPos = texture(gPosition, TexCoords).rgb;
-			vec3 fNormal = texture(gNormal, TexCoords).rgb;
+			fNormal = texture(gNormal, TexCoords).rgb;
 			//	vec4 fAlbedo = texture(gAlbedoSpec, TexCoords).rgba;
 			float Z = texture(depth, TexCoords).r;
-			if (Z <= 0.0)
+			if (Z <= 0.0 || Z==1)
 				discard;
 			float FlowDepth = curvature_flow_step(Z);
-			if (FlowDepth > 1.0)
+
+			/*if (FlowDepth > 1.0)
 				FlowDepth = 1.0;
 			if (FlowDepth < -1.0)
-				FlowDepth = -1.0;
+				FlowDepth = -1.0;*/
 
 			Z = Z - (FlowDepth * 0.001);
-			if (Z > 1)
+/*			if (Z > 1)
 				Z = 1.0;
 			if (Z < 0)
-				Z = 0.0;
+				Z = 0.0;*/
 
 			const vec3 lightDir = vec3(0.577, 0.577, 0.577);
 
@@ -116,15 +127,18 @@
 				discard; // don't draw outside circle
 					//currNorm.z = sqrt(1.0 - mag);
 
+            vec3 camPos = vec3(camPosx,camPosy,camPosz);
+
 			// calculate lighting
+			vec3 I = normalize(fNormal-camPos);
 			float diffuse = max(0.0, dot(lightDir, currNorm));
 			float ratio = 1.00 / 1.33;
-			vec3 R = refract(fPos, normalize(currNorm), ratio);
-			vec3 R2 = reflect(fPos, normalize(currNorm));
+			vec3 R = refract(I, normalize(currNorm), ratio);
+			vec3 R2 = reflect(I, normalize(currNorm));
 
 			//  if(FlowDepth>0) FragColor = fAlbedo*(fAmbient + fDiffuse * pow(diffuse, fPower));
 			gl_FragDepth = Z;
 			FragColor = (vec4(texture(skybox, R).rgb, 1.0) * 0.6 + vec4(0.2, 0.5, 0.7, 1.0) * 0.1 + vec4(texture(skybox, R2).rgb, 1.0) * 0.3);
 			//FragColor = vec4(vec3(Z),1.0);
-			//FragColor = vec4(currNorm, 1.0);
+			//FragColor = vec4(fPos, 1.0);
 		}
