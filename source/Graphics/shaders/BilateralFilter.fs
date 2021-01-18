@@ -17,7 +17,7 @@ float normpdf(in float x, in float sigma)
 void main()
 {
 		vec4 fragmentOriginalValue = texture(DepthTexture, TexCoords);
-		if(fragmentOriginalValue.r == 0.0f)
+		if(fragmentOriginalValue.r == 0.0f || fragmentOriginalValue.r == 1.0f)
 		{
 			discard;
 		}
@@ -33,8 +33,9 @@ void main()
 				{
 				currentValue = texture(DepthTexture, (TexCoords + (vec2(float(i) / SCR_WIDTH, float(j)) / SCR_HEIGHT))).r;
 				//smoothingFactor = normpdf(currentValue - fragmentOriginalValue.r, DomainSigma)*bZ* Kernel[KernelCenter + i] * Kernel[KernelCenter + j];
-				float toexp = j*1.0f;
-				smoothingFactor = normpdf(currentValue - fragmentOriginalValue.r, DomainSigma)*bZ* normpdf(toexp,0.1);
+				float Fj = j*1.0f;
+				float Fi = i*1.0f;
+				smoothingFactor = normpdf(currentValue - fragmentOriginalValue.r, DomainSigma)*exp(-Fi*Fi*0.1)* exp(-Fj*Fj*0.1);
 					z += smoothingFactor;
 					fragmentFinalValue += smoothingFactor * currentValue;
 				}

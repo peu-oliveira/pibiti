@@ -4,6 +4,8 @@
 #include "stb_image.h"
 #include <fstream>
 #include <sstream> 
+#include "../App/App.h"
+#include "../CUDA/Params.cuh"
 
 unsigned int cubemapTexture;
 bool isTexCreated = 0;
@@ -22,7 +24,10 @@ ParticleRenderer::ParticleRenderer() : m_pos(0), m_numParticles(0), m_ParRadius(
 ParticleRenderer::~ParticleRenderer() { m_pos = 0; }
 
 void ParticleRenderer::changeBool() {
-	Curv_Flow_Render = !Curv_Flow_Render;
+	if (RenderMethod<2)
+		RenderMethod++;
+	else RenderMethod = 0;
+	nIter = 0;
 }
 
 void ParticleRenderer::raisenIter() {
@@ -268,16 +273,14 @@ void ParticleRenderer::ScreenSpaceRender()
 	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	createQuad();
-	//BilateralFilter_Use(); **Still not working properly
-	CurvatureFlow_Use();
+	if(RenderMethod==2) BilateralFilter_Use(); //**Still not working properly
+	if(RenderMethod==1) CurvatureFlow_Use();
 	drawCubemap();
 }
 
 void ParticleRenderer::BilateralFilter_Use() {
 	bool FB = 1;
-
 	for (int i = 0; i < nIter; i++) {
-
 		if (FB == 1)
 			glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
 		else
@@ -288,7 +291,8 @@ void ParticleRenderer::BilateralFilter_Use() {
 		FB = !FB;
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	display_BF(FB);
+
+	display_CF(FB);
 }
 
 void ParticleRenderer::display_BF(bool FB) {
@@ -304,17 +308,10 @@ void ParticleRenderer::display_BF(bool FB) {
 	glUniform1f(SigmaDomain, sigma);
 	//glUniform1f(SigmaDomain, sigma);
 	glUniform1i(KernelCenter, KernelC);
+	glActiveTexture(GL_TEXTURE0);
 
-	if (FB == 1)
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depth);
-	}
-	else
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depth2);
-	}
+	if (FB == 1) glBindTexture(GL_TEXTURE_2D, depth);
+	else glBindTexture(GL_TEXTURE_2D, depth2);
 
 	renderQuad();
 
@@ -324,19 +321,31 @@ void ParticleRenderer::display_BF(bool FB) {
 void ParticleRenderer::CurvatureFlow_Use()
 {
 bool FBnum = 1;
-for (int i = 0; i < nIter; i++)
-{
-	if (FBnum == 1)
-		glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
-	else
-		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	display_CF(FBnum);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	FBnum = !FBnum;
+Scene &q = App::psys->scn;
+GLfloat camPosx, camPosy, camPosz;
+camPosx = App::psys->scn.camPos.x;
+camPosy = App::psys->scn.camPos.y;
+camPosz = App::psys->scn.camPos.z;
+
+	for (int i = 0; i < nIter; i++)
+	{
+		if (FBnum == 1)
+			glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
+		else
+			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		display_CF(FBnum);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		FBnum = !FBnum;
 }
 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //glDepthMask(GL_TRUE);
+int i = m_nProg;
+glUseProgram(m_program1[i]);
+glUniform1f(camerax, camPosx);
+glUniform1f(cameray, camPosy);
+glUniform1f(cameraz, camPosz);
+
 display_CF(FBnum);
 }
 
@@ -348,23 +357,25 @@ void ParticleRenderer::display_CF(bool FB)
 	glUniform1i(glGetUniformLocation(m_program1[i], "depth"), 0);
 	glUniform1i(glGetUniformLocation(m_program1[i], "gPosition"), 1);
 	glUniform1i(glGetUniformLocation(m_program1[i], "gNormal"), 2);
-	glUniform1i(glGetUniformLocation(m_program1[i], "gAlbedoSpec"), 3);
+	//glUniform1i(glGetUniformLocation(m_program1[i], "gAlbedoSpec"), 3);
 	glUniform1i(glGetUniformLocation(m_program1[i], "skybox"), 4);
 
 	if (FB == 1)
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
 	}
 	else
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth2);
+			glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
 	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, gNormal);
 	//glActiveTexture(GL_TEXTURE3);
 	//glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 	glActiveTexture(GL_TEXTURE4);
@@ -484,6 +495,7 @@ void ParticleRenderer::cubemap()
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	cubemapTexture = textureID;
+	glBindVertexArray(0);
 }
 
 GLuint ParticleRenderer::_compileProgram(const char *vsource, const char *fsource)
@@ -571,7 +583,7 @@ void ParticleRenderer::_initGL()
 	gbufferProg = _compileProgramA(parseFileToString("source/Graphics/shaders/Gbuffer.vs").c_str(), parseFileToString("source/Graphics/shaders/Gbuffer.fs").c_str());
 	SkyboxProg = _compileProgram(parseFileToString("source/Graphics/shaders/Cubemap.vs").c_str(), parseFileToString("source/Graphics/shaders/Cubemap.fs").c_str());
 	BFProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/BilateralFilter.fs").c_str());
-	//cout << parseFileToString("source/Graphics/shaders/BilateralFilter.fs").c_str();
+	//cout << parseFileToString("source/Graphics/shaders/CurvatureFlow.fs").c_str();
 
 	//** Original rendering
 	for (int i = 0; i < NumProg; i++)
@@ -605,6 +617,9 @@ void ParticleRenderer::_initGL()
 //** Uniforms for CF rendering
 	scrH1 = glGetUniformLocation(m_program1[0], "SCR_HEIGHT");
 	scrW1 = glGetUniformLocation(m_program1[0], "SCR_WIDTH");
+	camerax = glGetUniformLocation(m_program1[0], "camPosx");
+	cameray = glGetUniformLocation(m_program1[0], "camPosy");
+	cameraz = glGetUniformLocation(m_program1[0], "camPosz");
 	m_uLocHueDiff1 = glGetUniformLocation(m_program1[1], "fHueDiff");
 	m_uLocDiffuse1 = glGetUniformLocation(m_program1[0], "fDiffuse");
 	m_uLocAmbient1 = glGetUniformLocation(m_program1[0], "fAmbient");
