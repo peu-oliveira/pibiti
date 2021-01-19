@@ -143,4 +143,7 @@
       <Filter>App</Filter>
     </CudaCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="source\Graphics\shaders\ScreenSpaceRender.fs" />
+  </ItemGroup>
 </Project>
