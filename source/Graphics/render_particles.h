@@ -22,7 +22,8 @@ public:
 	void drawCubemap();
 	void CurvatureFlow_Use();
 	void BilateralFilter_Use();
-	void ScreenSpaceRender();
+	void ScreenSpaceRender(bool FB);
+	void ScreenSpaceSet();
 	void cubemap();
 	//  set
 	void setPositions(float *pos, int nPar) { m_pos = pos;	m_numParticles = nPar; }
@@ -43,14 +44,14 @@ protected:  // data
 public:
 	int m_nProg;
 
-	float *m_pos;	GLuint m_program[NumProg], m_program1[NumProg], m_vbo, m_colorVbo, m_scaleProg, gbufferProg, SkyboxProg, BFProg;
+	float *m_pos;	GLuint m_program[NumProg], m_program1[NumProg], m_vbo, m_colorVbo, m_scaleProg, gbufferProg, SkyboxProg, BFProg,SPRenderProg;
 	unsigned int skyboxVAO, quadVAO = 0;
 	int m_numParticles, m_window_w, m_window_h;  float m_fov;
 
 	float m_ParRadius, m_ParScale, m_fDiffuse, m_fAmbient, m_fPower, m_fSteps, m_fHueDiff;
 	GLint m_uLocPRadius[NumProg], m_uLocPScale[NumProg], m_uLocDiffuse, gm_uLocDiffuse, m_uLocAmbient, gm_uLocAmbient, m_uLocPower, gm_uLocPower, m_uLocSteps, m_uLocStepsS, m_uLocHueDiff, gPscale, gPradius, scrW, scrH;
 	GLint m_uLocPRadius1[NumProg], m_uLocPScale1[NumProg], m_uLocDiffuse1, gm_uLocDiffuse1, m_uLocAmbient1, gm_uLocAmbient1, m_uLocPower1, gm_uLocPower1, m_uLocSteps1, m_uLocStepsS1, m_uLocHueDiff1, scrW1, scrH1;
-	GLint SigmaDomain, KernelCenter,Kernel[50],camerax,cameray,cameraz;
+	GLint SigmaDomain, KernelCenter,Kernel[50],camerax,cameray,cameraz, SPcamerax, SPcameray, SPcameraz,SPHEIGHT,SPWIDTH;
 
 	unsigned int gBuffer, depth, gPosition, gNormal, gAlbedoSpec, depthFB, Zvalue, ColorMap, depth2;
 	GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };

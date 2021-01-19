@@ -12,9 +12,9 @@ void main() {
 	gl_PointSize = pointRadius * (pointScale / dist);
 
 	gl_TexCoord[0] = gl_MultiTexCoord0;
-	aPos = gl_Vertex.xyz;
 
         vec4 temporario = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
+		aPos = temporario.xyz;
         gl_Position = temporario;
         gl_FrontColor = gl_Color;
 }

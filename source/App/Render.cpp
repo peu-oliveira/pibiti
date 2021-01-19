@@ -37,7 +37,7 @@ void App::Render()
   ///  Render
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
 	if (RenderMethod==1 || RenderMethod==2) {
-		pParRend->ScreenSpaceRender(); //** Curvature Flow
+		pParRend->ScreenSpaceSet(); //** Curvature Flow
 		RenderText();
 		DrawBounds();  
 		DrawCollider();

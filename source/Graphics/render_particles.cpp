@@ -237,7 +237,7 @@ void ParticleRenderer::drawCubemap()
 	glDepthFunc(GL_LESS); // set depth function back to default*/
 }
 //** Steps for curvature flow rendering
-void ParticleRenderer::ScreenSpaceRender()
+void ParticleRenderer::ScreenSpaceSet()
 {
 	if (isTexCreated == 0)
 	{
@@ -278,6 +278,44 @@ void ParticleRenderer::ScreenSpaceRender()
 	drawCubemap();
 }
 
+void ParticleRenderer::ScreenSpaceRender(bool FB) {
+	Scene &q = App::psys->scn;
+	GLfloat camPosx, camPosy, camPosz;
+	camPosx = App::psys->scn.camPos.x;
+	camPosy = App::psys->scn.camPos.y;
+	camPosz = App::psys->scn.camPos.z;
+
+	glUseProgram(SPRenderProg);
+	glUniform1f(SPcamerax, camPosx);
+	glUniform1f(SPcameray, camPosy);
+	glUniform1f(SPcameraz, camPosz);
+	glUniform1i(glGetUniformLocation(SPRenderProg, "depth"), 0);
+	glUniform1i(glGetUniformLocation(SPRenderProg, "gNormal"), 2);
+	glUniform1i(glGetUniformLocation(SPRenderProg, "skybox"), 4);
+	if (FB == 1)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depth);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
+	}
+	else
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depth2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
+	}
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glUniform1f(SPHEIGHT, SCR_HEIGHT);
+	glUniform1f(SPWIDTH, SCR_WIDTH);
+
+	renderQuad();
+
+	glUseProgram(0);
+}
+
 void ParticleRenderer::BilateralFilter_Use() {
 	bool FB = 1;
 	for (int i = 0; i < nIter; i++) {
@@ -285,14 +323,14 @@ void ParticleRenderer::BilateralFilter_Use() {
 			glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT);
 		display_BF(FB);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		FB = !FB;
 	}
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear( GL_DEPTH_BUFFER_BIT);
 
-	display_CF(FB);
+	ScreenSpaceRender(FB);
 }
 
 void ParticleRenderer::display_BF(bool FB) {
@@ -303,13 +341,14 @@ void ParticleRenderer::display_BF(bool FB) {
 	glUseProgram(BFProg);
 
 	glUniform1i(glGetUniformLocation(BFProg, "DepthTexture"), 0);
+	glUniform1i(glGetUniformLocation(BFProg, "gNormal"), 2);
 	glUniform1f(scrH, SCR_HEIGHT);
 	glUniform1f(scrW, SCR_WIDTH);
 	glUniform1f(SigmaDomain, sigma);
 	//glUniform1f(SigmaDomain, sigma);
 	glUniform1i(KernelCenter, KernelC);
-	glActiveTexture(GL_TEXTURE0);
 
+	glActiveTexture(GL_TEXTURE0);
 	if (FB == 1) glBindTexture(GL_TEXTURE_2D, depth);
 	else glBindTexture(GL_TEXTURE_2D, depth2);
 
@@ -333,7 +372,7 @@ camPosz = App::psys->scn.camPos.z;
 			glBindFramebuffer(GL_FRAMEBUFFER, depthFB);
 		else
 			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT);
 		display_CF(FBnum);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		FBnum = !FBnum;
@@ -346,7 +385,7 @@ glUniform1f(camerax, camPosx);
 glUniform1f(cameray, camPosy);
 glUniform1f(cameraz, camPosz);
 
-display_CF(FBnum);
+ScreenSpaceRender(FBnum);
 }
 
 //** Render using curvature flow
@@ -371,8 +410,8 @@ void ParticleRenderer::display_CF(bool FB)
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth2);
-			glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, gNormal);
+		glActiveTexture(GL_TEXTURE2);
+	    glBindTexture(GL_TEXTURE_2D, gNormal);
 	}
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -583,6 +622,7 @@ void ParticleRenderer::_initGL()
 	gbufferProg = _compileProgramA(parseFileToString("source/Graphics/shaders/Gbuffer.vs").c_str(), parseFileToString("source/Graphics/shaders/Gbuffer.fs").c_str());
 	SkyboxProg = _compileProgram(parseFileToString("source/Graphics/shaders/Cubemap.vs").c_str(), parseFileToString("source/Graphics/shaders/Cubemap.fs").c_str());
 	BFProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/BilateralFilter.fs").c_str());
+	SPRenderProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/ScreenSpaceRender.fs").c_str());
 	//cout << parseFileToString("source/Graphics/shaders/CurvatureFlow.fs").c_str();
 
 	//** Original rendering
@@ -638,6 +678,13 @@ void ParticleRenderer::_initGL()
 	SigmaDomain = glGetUniformLocation(BFProg, "DomainSigma");
 	KernelCenter = glGetUniformLocation(BFProg, "KernelCenter");
 	//Kernel[] = glGetUniformLocation(BFProg, "Kernel");
+
+//** Uniforms for screen space render
+	SPHEIGHT = glGetUniformLocation(SPRenderProg, "SCR_HEIGHT");
+	SPWIDTH = glGetUniformLocation(SPRenderProg, "SCR_WIDTH");
+	SPcamerax = glGetUniformLocation(SPRenderProg, "camPosx");
+	SPcameray = glGetUniformLocation(SPRenderProg, "camPosy");
+	SPcameraz = glGetUniformLocation(SPRenderProg, "camPosz");
 
 
 
