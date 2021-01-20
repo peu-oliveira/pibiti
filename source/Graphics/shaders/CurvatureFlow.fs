@@ -4,7 +4,7 @@
 		uniform float SCR_WIDTH;
 
 		layout(location = 0) out vec4 FragColor;
-		layout(location = 1) out vec3 fNormal;
+		layout(location = 1) out vec3 fPos;
 		in vec2 TexCoords;
 		uniform sampler2D depth;
 		uniform sampler2D gPosition;
@@ -78,8 +78,8 @@
 		}
 
 		void main() {
-			vec3 fPos = texture(gPosition, TexCoords).rgb;
-			fNormal = texture(gNormal, TexCoords).rgb;
+			fPos = texture(gPosition, TexCoords).rgb;
+			vec3 fNormal = texture(gNormal, TexCoords).rgb;
 			//	vec4 fAlbedo = texture(gAlbedoSpec, TexCoords).rgba;
 			float Z = texture(depth, TexCoords).r;
 			if (Z <= 0.0 || Z==1)

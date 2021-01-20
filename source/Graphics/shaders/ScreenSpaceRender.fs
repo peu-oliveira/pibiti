@@ -9,7 +9,7 @@
 		layout(location = 0) out vec4 FragColor;
 		in vec2 TexCoords;
 		uniform sampler2D depth;
-		uniform sampler2D gNormal;
+		uniform sampler2D gPosition;
 		uniform samplerCube skybox;
 		vec3 currNorm = vec3(0.0);
 
@@ -66,14 +66,14 @@
 		}
 
 		void main() {
-			vec3 fNormal = texture(gNormal, TexCoords).rgb;
+			vec3 fPos = texture(gPosition, TexCoords).rgb;
 			float Z = texture(depth, TexCoords).r;
 			if (Z <= 0.0 || Z==1)
 				discard;
 			getNormals(Z);
 
 
-			const vec3 lightDir = vec3(0.577, 0.577, 0.577);
+			const vec3 lightDir = vec3(2.577, 14.577, 1.577);
 
 			float mag = dot(currNorm.xy, currNorm.xy);
 			if (mag > 1.0)
@@ -82,13 +82,21 @@
             vec3 camPos = vec3(camPosx,camPosy,camPosz);
 
 			// calculate lighting
-			vec3 I = normalize(fNormal-camPos);
+			vec4 waterColor = vec4(0.2, 0.5, 1.0, 0.7);
+			float lightSpecular = 0.25;
+			float materialShininess = 0.3;
+			vec3 I = normalize(fPos-camPos);
 			float diffuse = max(0.0, dot(lightDir, currNorm));
 			float ratio = 1.00 / 1.33;
 			vec3 R = refract(I, normalize(currNorm), ratio);
 			vec3 R2 = reflect(I, normalize(currNorm));
 
-			FragColor = (vec4(texture(skybox, R).rgb, 1.0) * 0.4 + vec4(0.2, 0.5, 1.0, 1.0) * 0.2 + vec4(texture(skybox, R2).rgb, 1.0) * 0.4);
+		   vec3 viewDir = normalize(camPos - fPos);
+           vec3 reflectDir = reflect(-lightDir, currNorm);  
+           float spec = pow(max(dot(viewDir, reflectDir), 0.0), materialShininess);
+           vec3 specular = lightSpecular * spec * texture(skybox, R).rgb;  
+
+			FragColor = (vec4(texture(skybox, R).rgb, 1.0) * 0.4 + waterColor * 0.2 + vec4(texture(skybox, R2).rgb, 1.0) * 0.4) + vec4(specular,1.0)*0.5;
 			//FragColor = vec4(vec3(Z),1.0);
 			//FragColor = vec4(fNormal, 1.0);
 		}

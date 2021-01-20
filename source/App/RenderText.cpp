@@ -20,11 +20,21 @@ void App::RenderText()
 	else
 		sprintf(s, "Fps %5.1f  particles %4d", psys->tim.FR, p->numParticles);
 	glPrint(0,y, s, fnt);	//y += Fy;
-
-	glColor3f(0.5, 1.0, 0.5);
-	sprintf(s, "Scene: %d/%d  %s      CF number of iterations: %i", psys->curScene+1, psys->scenes.size(), psys->scn.title, pParRend->nIter);
-	glPrint(300,y, s, fnt);	y += Fy + 5;
-
+	if (pParRend->RenderMethod == 0) {
+		glColor3f(0.5, 1.0, 0.5);
+		sprintf(s, "Scene: %d/%d  %s      Original rendering", psys->curScene + 1, psys->scenes.size(), psys->scn.title, pParRend->nIter);
+		glPrint(300, y, s, fnt);	y += Fy + 5;
+	}
+	else if (pParRend->RenderMethod == 1) {
+		glColor3f(0.5, 1.0, 0.5);
+		sprintf(s, "Scene: %d/%d  %s      Curvature flow smoothing   Number of iterations: %i", psys->curScene + 1, psys->scenes.size(), psys->scn.title, pParRend->nIter);
+		glPrint(300, y, s, fnt);	y += Fy + 5;
+	}
+	else if (pParRend->RenderMethod == 2) {
+		glColor3f(0.5, 1.0, 0.5);
+		sprintf(s, "Scene: %d/%d  %s      Bilateral filter smoothing   Number of iterations: %i", psys->curScene + 1, psys->scenes.size(), psys->scn.title, pParRend->nIter);
+		glPrint(300, y, s, fnt);	y += Fy + 5;
+	}
 	glColor3f(0.5, 0.8, 1.0);
 	sprintf(s, "Colors: %s %s", ClrNames[p->clrType], pParRend->m_nProg > 0 ? "Hue":"");  glPrint(0,y, s, fnt);	y += Fy + 10;
 	if (nChg > 0)  nChg--;	/*sprintf(s, "%2d  si %3d", nChg, sizeof(SimParams));  glPrint(0,y, s, fnt);	y += Fy + 10;/**/
