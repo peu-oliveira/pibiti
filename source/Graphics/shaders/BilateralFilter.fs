@@ -2,7 +2,7 @@
 
 in vec2 TexCoords;
 layout (location = 0) out vec4 smoothedParticleDepth;
-layout(location = 1) out vec3 fNormal;
+layout(location = 1) out vec3 fPosition;
 
 uniform sampler2D DepthTexture;
 uniform float SCR_HEIGHT;
@@ -10,7 +10,7 @@ uniform float SCR_WIDTH;
 uniform float Kernel[50];
 uniform float DomainSigma;
 uniform int KernelCenter;
-uniform sampler2D gNormal;
+uniform sampler2D gPosition;
 
 float normpdf(in float x, in float sigma)
 {
@@ -19,7 +19,7 @@ float normpdf(in float x, in float sigma)
 void main()
 {
 		vec4 fragmentOriginalValue = texture(DepthTexture, TexCoords);
-		fNormal = texture(gNormal, TexCoords).xyz;
+		fPosition = texture(gPosition, TexCoords).xyz;
 		if(fragmentOriginalValue.r == 0.0f || fragmentOriginalValue.r == 1.0f)
 		{
 			discard;

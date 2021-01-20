@@ -129,19 +129,19 @@ void ParticleRenderer::createTexture()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 	//unsigned int attachments[1] = { GL_DEPTH_ATTACHMENT };
 	// position color buffer
-	glGenTextures(1, &gPosition);
-	glBindTexture(GL_TEXTURE_2D, gPosition);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
-	// normal color buffer
 	glGenTextures(1, &gNormal);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gNormal, 0);
+	// normal color buffer
+	glGenTextures(1, &gPosition);
+	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gPosition, 0);
 	// color + specular color buffer
 	glGenTextures(1, &gAlbedoSpec);
 	glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
@@ -290,21 +290,21 @@ void ParticleRenderer::ScreenSpaceRender(bool FB) {
 	glUniform1f(SPcameray, camPosy);
 	glUniform1f(SPcameraz, camPosz);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "depth"), 0);
-	glUniform1i(glGetUniformLocation(SPRenderProg, "gNormal"), 2);
+	glUniform1i(glGetUniformLocation(SPRenderProg, "gPosition"), 2);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "skybox"), 4);
 	if (FB == 1)
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, gNormal);
+		glBindTexture(GL_TEXTURE_2D, gPosition);
 	}
 	else
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth2);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, gNormal);
+		glBindTexture(GL_TEXTURE_2D, gPosition);
 	}
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
@@ -341,7 +341,7 @@ void ParticleRenderer::display_BF(bool FB) {
 	glUseProgram(BFProg);
 
 	glUniform1i(glGetUniformLocation(BFProg, "DepthTexture"), 0);
-	glUniform1i(glGetUniformLocation(BFProg, "gNormal"), 2);
+	glUniform1i(glGetUniformLocation(BFProg, "gPosition"), 2);
 	glUniform1f(scrH, SCR_HEIGHT);
 	glUniform1f(scrW, SCR_WIDTH);
 	glUniform1f(SigmaDomain, sigma);
@@ -394,8 +394,8 @@ void ParticleRenderer::display_CF(bool FB)
 	int i = m_nProg;
 	glUseProgram(m_program1[i]); //  pass vars
 	glUniform1i(glGetUniformLocation(m_program1[i], "depth"), 0);
-	glUniform1i(glGetUniformLocation(m_program1[i], "gPosition"), 1);
-	glUniform1i(glGetUniformLocation(m_program1[i], "gNormal"), 2);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gNormal"), 1);
+	glUniform1i(glGetUniformLocation(m_program1[i], "gPosition"), 2);
 	//glUniform1i(glGetUniformLocation(m_program1[i], "gAlbedoSpec"), 3);
 	glUniform1i(glGetUniformLocation(m_program1[i], "skybox"), 4);
 
@@ -404,17 +404,17 @@ void ParticleRenderer::display_CF(bool FB)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, gNormal);
+		glBindTexture(GL_TEXTURE_2D, gPosition);
 	}
 	else
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depth2);
 		glActiveTexture(GL_TEXTURE2);
-	    glBindTexture(GL_TEXTURE_2D, gNormal);
+	    glBindTexture(GL_TEXTURE_2D, gPosition);
 	}
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gPosition);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
 	//glActiveTexture(GL_TEXTURE3);
 	//glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 	glActiveTexture(GL_TEXTURE4);
@@ -594,8 +594,8 @@ GLuint ParticleRenderer::_compileProgramA(const char *vsource, const char *fsour
 		glAttachShader(program, vertexShader);
 	glAttachShader(program, fragmentShader);
 
-	glBindFragDataLocation(program, 0, "gPosition");
-	glBindFragDataLocation(program, 1, "gNormal");
+	glBindFragDataLocation(program, 0, "gNormal");
+	glBindFragDataLocation(program, 1, "gPosition");
 	glBindFragDataLocation(program, 2, "gAlbedoSpec");
 
 	glLinkProgram(program);
