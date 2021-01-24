@@ -13,6 +13,8 @@ public:
 	void lownIter();
 	int ReturnNIter();
 	int nIter = 0;
+	const int KernelC = 7;
+	float kernel[15]; //** KernelC*2+1;
 	void display();
 	void display_CF(bool FB);
 	void display_BF(bool FB);
@@ -25,6 +27,7 @@ public:
 	void ScreenSpaceRender(bool FB);
 	void ScreenSpaceSet();
 	void cubemap();
+	void CreateFilter();
 	//  set
 	void setPositions(float *pos, int nPar) { m_pos = pos;	m_numParticles = nPar; }
 	void setVertexBuffer(uint vbo, int nPar) { m_vbo = vbo;	m_numParticles = nPar; }
@@ -51,9 +54,9 @@ public:
 	float m_ParRadius, m_ParScale, m_fDiffuse, m_fAmbient, m_fPower, m_fSteps, m_fHueDiff;
 	GLint m_uLocPRadius[NumProg], m_uLocPScale[NumProg], m_uLocDiffuse, gm_uLocDiffuse, m_uLocAmbient, gm_uLocAmbient, m_uLocPower, gm_uLocPower, m_uLocSteps, m_uLocStepsS, m_uLocHueDiff, gPscale, gPradius, scrW, scrH;
 	GLint m_uLocPRadius1[NumProg], m_uLocPScale1[NumProg], m_uLocDiffuse1, gm_uLocDiffuse1, m_uLocAmbient1, gm_uLocAmbient1, m_uLocPower1, gm_uLocPower1, m_uLocSteps1, m_uLocStepsS1, m_uLocHueDiff1, scrW1, scrH1;
-	GLint SigmaDomain, KernelCenter,Kernel[50],camerax,cameray,cameraz, SPcamerax, SPcameray, SPcameraz,SPHEIGHT,SPWIDTH;
+	GLint SigmaDomain, KernelCenter,KernelUni[15],camerax,cameray,cameraz, SPcamerax, SPcameray, SPcameraz,SPHEIGHT,SPWIDTH,Projection;
 
-	unsigned int gBuffer, depth, gPosition, gNormal, gAlbedoSpec, depthFB, Zvalue, ColorMap, depth2;
+	unsigned int gBuffer, depth, gPosition, gNormal, particleThickness, depthFB, Zvalue, ColorMap, depth2;
 	GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	GLenum Dattachment[2] = { GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2 };
 	unsigned int rboDepth;
