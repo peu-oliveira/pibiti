@@ -1,15 +1,19 @@
 #version 330 core
+#extension GL_NV_shadow_samplers_cube : enable
+
 	
 		uniform float SCR_HEIGHT;
 		uniform float SCR_WIDTH;
 		uniform float camPosx;
 		uniform float camPosy;
 		uniform float camPosz;
+		uniform mat4 Projection;
 
 		layout(location = 0) out vec4 FragColor;
 		in vec2 TexCoords;
 		uniform sampler2D depth;
 		uniform sampler2D gPosition;
+		uniform sampler2D particleThickness;
 		uniform samplerCube skybox;
 		vec3 currNorm = vec3(0.0);
 
@@ -65,28 +69,61 @@
 				}}
 		}
 
+float fresnel ( float rr1 , float rr2 , vec3 n , vec3 d )
+{
+float r = rr1 / rr2 ;
+float theta1 = dot( n , -d ) ;
+float theta2 = sqrt( 1.0 - r * r * ( 1.0 - theta1 * theta1 ) ) ;
+// Fi g u r e out what the F r e s n el e q u a ti o n s say about what happens next
+float rs = ( rr1 * theta1 - rr2 * theta2 ) / ( rr1 * theta1 + rr2 * theta2 ) ;
+rs = rs * rs ;
+float rp = ( rr1 * theta2 - rr2 * theta1 ) / ( rr1 * theta2 + rr2 * theta1 ) ;
+rp = rp * rp ;
+return( ( rs + rp ) / 2.0 ) ;
+}
+
+
 		void main() {
 			vec3 fPos = texture(gPosition, TexCoords).rgb;
+			vec4 thickness = texture(particleThickness, TexCoords);
 			float Z = texture(depth, TexCoords).r;
 			if (Z <= 0.0 || Z==1)
 				discard;
 			getNormals(Z);
+			currNorm = normalize(currNorm);
 
-
-			const vec3 lightDir = vec3(2.577, 14.577, 1.577);
+			const vec3 lightDir = vec3(0.0,100.0,10.0);
 
 			float mag = dot(currNorm.xy, currNorm.xy);
 			if (mag > 1.0)
 				discard; // don't draw outside circle
 
+			vec2 pos = (TexCoords-vec2(0.5))*2.0;
+			vec3 eyePos = (Z*vec3(pos.x*Projection[0][0],pos.y*Projection[1][1],1.0));
             vec3 camPos = vec3(camPosx,camPosy,camPosz);
-
+			vec3 fromEye = normalize(eyePos);
 			// calculate lighting
-			vec4 waterColor = vec4(0.2, 0.5, 1.0, 0.7);
+			vec4 waterColor = vec4(0.2, 0.5, 0.7, 1.0);
+			vec3 LightIntensity = vec3(0.5,0.5,0.5);
+			vec3 reflectedEye = normalize(reflect(fromEye,currNorm));
+			vec4 environmentColor = textureCube(skybox,reflectedEye);
+
+			float lambert = max( 0.0 , dot( normalize( lightDir.xyz ) , currNorm ) ) ;
+            float cosine = max( 0.0 , dot( normalize ( lightDir.xyz - eyePos ) , currNorm ) ) ;
+            vec4 ambient = waterColor;
+            vec4 diffuse = waterColor * cosine;
+            float Fspecular = clamp(fresnel( 0.25 , 0.5 , currNorm , fromEye ) , 0.0 ,0.2) ;
+            vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(thickness ) ;
+            vec4 foamColor = vec4(1.0);
+            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + Fspecular * environmentColor , foamColor , Z/*Actually FoamDepth*/ ) , environmentColor , 0.5 );
+
+			//** Old rendering
+/*
+   	   //   FragColor = environmentColor;
 			float lightSpecular = 0.25;
 			float materialShininess = 0.3;
 			vec3 I = normalize(fPos-camPos);
-			float diffuse = max(0.0, dot(lightDir, currNorm));
+			//float diffuse = max(0.0, dot(lightDir, currNorm));
 			float ratio = 1.00 / 1.33;
 			vec3 R = refract(I, normalize(currNorm), ratio);
 			vec3 R2 = reflect(I, normalize(currNorm));
@@ -95,8 +132,9 @@
            vec3 reflectDir = reflect(-lightDir, currNorm);  
            float spec = pow(max(dot(viewDir, reflectDir), 0.0), materialShininess);
            vec3 specular = lightSpecular * spec * texture(skybox, R).rgb;  
-
-			FragColor = (vec4(texture(skybox, R).rgb, 1.0) * 0.4 + waterColor * 0.2 + vec4(texture(skybox, R2).rgb, 1.0) * 0.4) + vec4(specular,1.0)*0.5;
+*/
+		    //FragColor = (vec4(texture(skybox, R).rgb, 0.0) * 0.4 + waterColor * 0.2 + vec4(texture(skybox, R2).rgb, 0.0) * 0.4) + vec4(specular,1.0)*0.5 + diffuse;
 			//FragColor = vec4(vec3(Z),1.0);
 			//FragColor = vec4(fNormal, 1.0);
+			//FragColor = thickness;
 		}

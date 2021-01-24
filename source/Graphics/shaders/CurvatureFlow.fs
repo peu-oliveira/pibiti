@@ -5,10 +5,12 @@
 
 		layout(location = 0) out vec4 FragColor;
 		layout(location = 1) out vec3 fPos;
+		layout(location = 2) out vec4 thickness;
 		in vec2 TexCoords;
 		uniform sampler2D depth;
 		uniform sampler2D gPosition;
 		uniform sampler2D gNormal;
+		uniform sampler2D particleThickness;
 
 		float dzdx(int n) {
 			if (TexCoords.y >= 1 || TexCoords.x >= 1 || TexCoords.y < 0 || TexCoords.x < 0)
@@ -79,6 +81,7 @@
 
 		void main() {
 			fPos = texture(gPosition, TexCoords).rgb;
+			thickness = texture(particleThickness, TexCoords);
 			vec3 fNormal = texture(gNormal, TexCoords).rgb;
 			//	vec4 fAlbedo = texture(gAlbedoSpec, TexCoords).rgba;
 			float Z = texture(depth, TexCoords).r;
@@ -86,16 +89,16 @@
 				discard;
 			float FlowDepth = curvature_flow_step(Z);
 
-			/*if (FlowDepth > 1.0)
+			if (FlowDepth > 1.0)
 				FlowDepth = 1.0;
 			if (FlowDepth < -1.0)
-				FlowDepth = -1.0;*/
+				FlowDepth = -1.0;
 
 			Z = Z - (FlowDepth * 0.001);
-/*			if (Z > 1)
+			if (Z > 1)
 				Z = 1.0;
 			if (Z < 0)
-				Z = 0.0;*/
+				Z = 0.0;
 
 			gl_FragDepth = Z;
 		}

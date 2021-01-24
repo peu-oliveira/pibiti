@@ -14,7 +14,7 @@ void main() {
 	gl_TexCoord[0] = gl_MultiTexCoord0;
 
         vec4 temporario = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xyz, 1.0);
-		aPos = temporario.xyz;
+		aPos = gl_Vertex.xyz;
         gl_Position = temporario;
         gl_FrontColor = gl_Color;
 }
