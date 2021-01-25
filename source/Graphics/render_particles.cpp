@@ -241,10 +241,14 @@ void ParticleRenderer::ScreenSpaceSet()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawCubemap();
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_POINT_SPRITE_ARB);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(gbufferProg); //  pass vars
 	glUniform1f(gPscale, m_ParScale);
@@ -255,9 +259,16 @@ void ParticleRenderer::ScreenSpaceSet()
 
 	//glColor3f(1, 1, 1);
 	_drawPoints();
+/*	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	_drawPoints();*/
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
+	glDisable(GL_BLEND);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 	//glDepthMask(GL_FALSE);
 	glEnable(GL_POINT_SPRITE_ARB);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
@@ -278,13 +289,15 @@ void ParticleRenderer::ScreenSpaceRender(bool FB) {
 	camPosx = App::psys->scn.camPos.x;
 	camPosy = App::psys->scn.camPos.y;
 	camPosz = App::psys->scn.camPos.z;
-	GLfloat matrix[16];
-	glGetFloatv(GL_PROJECTION_MATRIX,matrix);
+	GLfloat Pmatrix[16],MVmatrix[16];
+	glGetFloatv(GL_PROJECTION_MATRIX,Pmatrix);
+	glGetFloatv(GL_MODELVIEW_MATRIX, MVmatrix);
 	glUseProgram(SPRenderProg);
 	glUniform1f(SPcamerax, camPosx);
 	glUniform1f(SPcameray, camPosy);
 	glUniform1f(SPcameraz, camPosz);
-	glUniformMatrix4fv(Projection, 1 ,GL_FALSE,matrix);
+	glUniformMatrix4fv(Projection, 1 ,GL_FALSE,Pmatrix);
+	glUniformMatrix4fv(ModelView, 1, GL_FALSE, MVmatrix);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "depth"), 0);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "particleThickness"), 1);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "gPosition"), 2);
@@ -692,6 +705,7 @@ void ParticleRenderer::_initGL()
 
 //** Uniforms for screen space render
 	Projection = glGetUniformLocation(SPRenderProg, "Projection");
+	ModelView = glGetUniformLocation(SPRenderProg, "ModelView");
 	SPHEIGHT = glGetUniformLocation(SPRenderProg, "SCR_HEIGHT");
 	SPWIDTH = glGetUniformLocation(SPRenderProg, "SCR_WIDTH");
 	SPcamerax = glGetUniformLocation(SPRenderProg, "camPosx");

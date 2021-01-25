@@ -8,6 +8,7 @@
 		uniform float camPosy;
 		uniform float camPosz;
 		uniform mat4 Projection;
+		uniform mat4 ModelView;
 
 		layout(location = 0) out vec4 FragColor;
 		in vec2 TexCoords;
@@ -84,22 +85,23 @@ return( ( rs + rp ) / 2.0 ) ;
 
 
 		void main() {
-			vec3 fPos = texture(gPosition, TexCoords).rgb;
-			vec4 thickness = texture(particleThickness, TexCoords);
+			vec3 fPos = texture(gPosition, TexCoords).rgb; //Actually cubemap scene tex
+			float thickness = texture(particleThickness, TexCoords).x*0.075;
 			float Z = texture(depth, TexCoords).r;
 			if (Z <= 0.0 || Z==1)
 				discard;
 			getNormals(Z);
 			currNorm = normalize(currNorm);
 
-			const vec3 lightDir = vec3(0.0,100.0,10.0);
+			const vec3 lightDir = vec3(0.0,1.0,-1.0);
 
 			float mag = dot(currNorm.xy, currNorm.xy);
 			if (mag > 1.0)
 				discard; // don't draw outside circle
 
 			vec2 pos = (TexCoords-vec2(0.5))*2.0;
-			vec3 eyePos = (Z*vec3(pos.x*Projection[0][0],pos.y*Projection[1][1],1.0));
+			vec3 eyePos = (Z*vec3(-pos.x*Projection[0][0],-pos.y*Projection[1][1],1.0));
+			eyePos = (vec4(eyePos,1.0)*inverse(ModelView)).xyz;
             vec3 camPos = vec3(camPosx,camPosy,camPosz);
 			vec3 fromEye = normalize(eyePos);
 			// calculate lighting
@@ -107,16 +109,17 @@ return( ( rs + rp ) / 2.0 ) ;
 			vec3 LightIntensity = vec3(0.5,0.5,0.5);
 			vec3 reflectedEye = normalize(reflect(fromEye,currNorm));
 			vec4 environmentColor = textureCube(skybox,reflectedEye);
+			vec4 sceneCol = texture(gPosition,TexCoords + (currNorm.xy*thickness));
 
 			float lambert = max( 0.0 , dot( normalize( lightDir.xyz ) , currNorm ) ) ;
             float cosine = max( 0.0 , dot( normalize ( lightDir.xyz - eyePos ) , currNorm ) ) ;
             vec4 ambient = waterColor;
             vec4 diffuse = waterColor * cosine;
             float Fspecular = clamp(fresnel( 0.25 , 0.5 , currNorm , fromEye ) , 0.0 ,0.2) ;
-            vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(thickness ) ;
+            vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(-thickness ) ;
             vec4 foamColor = vec4(1.0);
-            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + Fspecular * environmentColor , foamColor , Z/*Actually FoamDepth*/ ) , environmentColor , 0.5 );
-
+            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (1.0-Fspecular) * environmentColor , foamColor , 0.1/*Actually FoamDepth*/ ) , sceneCol , 0.5 );
+			//FragColor = vec4(thickness);
 			//** Old rendering
 /*
    	   //   FragColor = environmentColor;
