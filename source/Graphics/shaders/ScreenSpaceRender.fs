@@ -16,6 +16,8 @@
 		uniform sampler2D gPosition;
 		uniform sampler2D particleThickness;
 		uniform samplerCube skybox;
+		uniform sampler2D FoamDepthTexture;
+        uniform sampler2D FoamDepthStencilTexture;
 		vec3 currNorm = vec3(0.0);
 
 		float dzdx(int n) {
@@ -75,7 +77,7 @@ float fresnel ( float rr1 , float rr2 , vec3 n , vec3 d )
 float r = rr1 / rr2 ;
 float theta1 = dot( n , -d ) ;
 float theta2 = sqrt( 1.0 - r * r * ( 1.0 - theta1 * theta1 ) ) ;
-// Fi g u r e out what the F r e s n el e q u a ti o n s say about what happens next
+// Fi g u r e out what the F r e s n el equations say about what happens next
 float rs = ( rr1 * theta1 - rr2 * theta2 ) / ( rr1 * theta1 + rr2 * theta2 ) ;
 rs = rs * rs ;
 float rp = ( rr1 * theta2 - rr2 * theta1 ) / ( rr1 * theta2 + rr2 * theta1 ) ;
@@ -85,6 +87,7 @@ return( ( rs + rp ) / 2.0 ) ;
 
 
 		void main() {
+		    float gamma = 2.2;
 			vec3 fPos = texture(gPosition, TexCoords).rgb; //Actually cubemap scene tex
 			float thickness = texture(particleThickness, TexCoords).x*0.075;
 			float Z = texture(depth, TexCoords).r;
@@ -93,7 +96,8 @@ return( ( rs + rp ) / 2.0 ) ;
 			getNormals(Z);
 			currNorm = normalize(currNorm);
 
-			const vec3 lightDir = vec3(0.0,1.0,-1.0);
+			const vec3 lightDir = vec3(0.0,-10.0,-1.0);
+			vec3 LightIntensity = pow(vec3(0.252,0.212,0.15),vec3(gamma));
 
 			float mag = dot(currNorm.xy, currNorm.xy);
 			if (mag > 1.0)
@@ -106,7 +110,7 @@ return( ( rs + rp ) / 2.0 ) ;
 			vec3 fromEye = normalize(eyePos);
 			// calculate lighting
 			vec4 waterColor = vec4(0.2, 0.5, 0.7, 1.0);
-			vec3 LightIntensity = vec3(0.5,0.5,0.5);
+			waterColor.xyz = pow(waterColor.xyz,vec3(gamma));
 			vec3 reflectedEye = normalize(reflect(fromEye,currNorm));
 			vec4 environmentColor = textureCube(skybox,reflectedEye);
 			vec4 sceneCol = texture(gPosition,TexCoords + (currNorm.xy*thickness));
@@ -115,10 +119,11 @@ return( ( rs + rp ) / 2.0 ) ;
             float cosine = max( 0.0 , dot( normalize ( lightDir.xyz - eyePos ) , currNorm ) ) ;
             vec4 ambient = waterColor;
             vec4 diffuse = waterColor * cosine;
-            float Fspecular = clamp(fresnel( 0.25 , 0.5 , currNorm , fromEye ) , 0.0 ,0.2) ;
+            float Fspecular = clamp(fresnel( 1.0 , 1.33 , currNorm , fromEye ) , 0.0 ,1.0) ; //To check values
             vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(-thickness ) ;
             vec4 foamColor = vec4(1.0);
-            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (1.0-Fspecular) * environmentColor , foamColor , 0.1/*Actually FoamDepth*/ ) , sceneCol , 0.5 );
+            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (Fspecular) * environmentColor , foamColor , 0.0/*Actually FoamDepth*/ ) , sceneCol , 0.5 )/2.0; //Division by 2 because of gamma correction
+			FragColor.xyz = pow(FragColor.xyz,vec3(1/gamma));
 			//FragColor = vec4(thickness);
 			//** Old rendering
 /*

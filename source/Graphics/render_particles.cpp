@@ -174,6 +174,23 @@ void ParticleRenderer::createTexture()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, ColorMap, 0);
 	glDrawBuffers(2, Dattachment);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenFramebuffers(1, &FoamFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, FoamFB);
+	glGenTextures(1, &FoamDepth);
+	glBindTexture(GL_TEXTURE_2D, FoamDepth);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, FoamDepth, 0);
+	glGenTextures(1, &FoamTex);
+	glBindTexture(GL_TEXTURE_2D, FoamTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FoamTex, 0);
+	glDrawBuffers(1, FoamAttachment);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 //** Create quad for screen-space rendering
 void ParticleRenderer::createQuad()
@@ -283,7 +300,29 @@ void ParticleRenderer::ScreenSpaceSet()
 	drawCubemap();
 }
 
+void ParticleRenderer::SetFoam() {
+	GLfloat Pmatrix[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, Pmatrix);
+	glBindFramebuffer(GL_FRAMEBUFFER, FoamFB);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_POINT_SPRITE_ARB);
+	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
+	glEnable(GL_DEPTH_TEST);
+
+	glUseProgram(FoamProg); //  pass vars
+	glUniform1f(FHEIGHT, SCR_HEIGHT);
+	glUniform1f(FWIDTH, SCR_WIDTH);
+	glUniformMatrix4fv(FProjection, 1, GL_FALSE, Pmatrix);
+
+	_drawPoints();
+	glUseProgram(0);
+	glDisable(GL_POINT_SPRITE_ARB);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void ParticleRenderer::ScreenSpaceRender(bool FB) {
+//	glEnable(GL_FRAMEBUFFER_SRGB);
 	Scene &q = App::psys->scn;
 	GLfloat camPosx, camPosy, camPosz;
 	camPosx = App::psys->scn.camPos.x;
@@ -301,7 +340,9 @@ void ParticleRenderer::ScreenSpaceRender(bool FB) {
 	glUniform1i(glGetUniformLocation(SPRenderProg, "depth"), 0);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "particleThickness"), 1);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "gPosition"), 2);
+	glUniform1i(glGetUniformLocation(SPRenderProg, "FoamDepthTexture"), 3);
 	glUniform1i(glGetUniformLocation(SPRenderProg, "skybox"), 4);
+	glUniform1i(glGetUniformLocation(SPRenderProg, "FoamDepthStencilTexture"), 5);
 	if (FB == 1)
 	{
 		glActiveTexture(GL_TEXTURE0);
@@ -320,11 +361,15 @@ void ParticleRenderer::ScreenSpaceRender(bool FB) {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, particleThickness);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, FoamDepth);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, FoamTex);
 	glUniform1f(SPHEIGHT, SCR_HEIGHT);
 	glUniform1f(SPWIDTH, SCR_WIDTH);
 
 	renderQuad();
-
+//	glDisable(GL_FRAMEBUFFER_SRGB);
 	glUseProgram(0);
 }
 
@@ -643,6 +688,7 @@ void ParticleRenderer::_initGL()
 	SkyboxProg = _compileProgram(parseFileToString("source/Graphics/shaders/Cubemap.vs").c_str(), parseFileToString("source/Graphics/shaders/Cubemap.fs").c_str());
 	BFProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/BilateralFilter.fs").c_str());
 	SPRenderProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/ScreenSpaceRender.fs").c_str());
+	FoamProg = _compileProgramA(parseFileToString("source/Graphics/shaders/Gbuffer.vs").c_str(), parseFileToString("source/Graphics/shaders/Foam.fs").c_str());
 	//cout << parseFileToString("source/Graphics/shaders/CurvatureFlow.fs").c_str();
 
 	//** Original rendering
@@ -712,7 +758,11 @@ void ParticleRenderer::_initGL()
 	SPcameray = glGetUniformLocation(SPRenderProg, "camPosy");
 	SPcameraz = glGetUniformLocation(SPRenderProg, "camPosz");
 
-
+//** Uniforms for Foam shader
+	FProjection = glGetUniformLocation(FoamProg, "Projection");
+	FHEIGHT = glGetUniformLocation(FoamProg, "SCR_HEIGHT");
+	FWIDTH = glGetUniformLocation(FoamProg, "SCR_WIDTH");
+	//GHEIGHT = glGetUniformLocation(FoamProg, "SCR_HEIGHT");
 
 	glClampColorARB(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
 	glClampColorARB(GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);

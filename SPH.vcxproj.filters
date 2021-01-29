@@ -145,5 +145,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="source\Graphics\shaders\ScreenSpaceRender.fs" />
+    <None Include="source\Graphics\shaders\Foam.fs" />
   </ItemGroup>
 </Project>
