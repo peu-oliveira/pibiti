@@ -89,6 +89,8 @@ return( ( rs + rp ) / 2.0 ) ;
 		void main() {
 		    float gamma = 2.2;
 			vec3 fPos = texture(gPosition, TexCoords).rgb; //Actually cubemap scene tex
+			vec4 FoamDepthStencil = texture(FoamDepthStencilTexture,TexCoords);
+			float FoamDepth = texture(FoamDepthTexture,TexCoords).r;
 			float thickness = texture(particleThickness, TexCoords).x*0.075;
 			float Z = texture(depth, TexCoords).r;
 			if (Z <= 0.0 || Z==1)
@@ -122,8 +124,9 @@ return( ( rs + rp ) / 2.0 ) ;
             float Fspecular = clamp(fresnel( 1.0 , 1.33 , currNorm , fromEye ) , 0.0 ,1.0) ; //To check values
             vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(-thickness ) ;
             vec4 foamColor = vec4(1.0);
-            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (Fspecular) * environmentColor , foamColor , 0.0/*Actually FoamDepth*/ ) , sceneCol , 0.5 )/2.0; //Division by 2 because of gamma correction
+            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (Fspecular) * environmentColor , foamColor , FoamDepthStencil/*0*/ ) , sceneCol , 0.5 )/2.0; //Division by 2 because of gamma correction
 			FragColor.xyz = pow(FragColor.xyz,vec3(1/gamma));
+	//		FragColor = vec4(FoamDepth);
 			//FragColor = vec4(thickness);
 			//** Old rendering
 /*

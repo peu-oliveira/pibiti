@@ -9,7 +9,7 @@ uniform float SCR_WIDTH;
 
 void main( ){
 
-float Near = 1.0f ,far =10.0f ,foamThreshold = 1.0f;
+float Near = 0.1f ,far =1000.0f ,foamThreshold = 2.0f;
 
 if ( weberNumber >=foamThreshold )
 {
@@ -35,5 +35,6 @@ vec4 clipspacePos = Projection *fragPos ;
 float deviceDepth = clipspacePos.z / clipspacePos.w ;
 float fragDepth = ( ( 2.0f * Near ) / (far + Near - ( deviceDepth * 0.5 + 0.5 ) * (far - Near ) ) ) ;
 particleDepth = vec4 ( vec3 (fragDepth ) , 1.0f - sizeAndAlphaFactor ) ;
+//particleDepth = vec4(weberNumber);
 gl_FragDepth = fragDepth ;
-}
+}

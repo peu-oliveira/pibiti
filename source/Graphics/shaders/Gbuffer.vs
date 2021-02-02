@@ -1,5 +1,6 @@
 #version 130
 
+//layout( location =1 ) in float vWeberNumber;
 uniform float pointRadius; // point size in world space
 uniform float pointScale;  // scale to calculate size in pixels
 uniform float SCR_HEIGHT;
