@@ -298,6 +298,8 @@ void App::KeyPressed(unsigned char k, int x, int y)
 		break;
 
 	case 'q':
+		iClrType = 0;
+		updHue();
 		App::changeBool();
 		pParRend->changeBool();
 		break;

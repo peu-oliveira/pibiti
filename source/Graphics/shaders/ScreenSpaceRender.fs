@@ -110,6 +110,10 @@ return( ( rs + rp ) / 2.0 ) ;
 			eyePos = (vec4(eyePos,1.0)*inverse(ModelView)).xyz;
             vec3 camPos = vec3(camPosx,camPosy,camPosz);
 			vec3 fromEye = normalize(eyePos);
+			vec4 background = texture(gPosition,TexCoords);
+			float Far = 1.0, Near = 0.1;
+			float backgroundDepth = ( 2.0 * Near ) / ( Far + Near - ( 1.0/*backgroundDepthTexture*/) * ( Far - Near ));
+
 			// calculate lighting
 			vec4 waterColor = vec4(0.2, 0.5, 0.7, 1.0);
 			waterColor.xyz = pow(waterColor.xyz,vec3(gamma));
@@ -124,9 +128,16 @@ return( ( rs + rp ) / 2.0 ) ;
             float Fspecular = clamp(fresnel( 1.0 , 1.33 , currNorm , fromEye ) , 0.0 ,1.0) ; //To check values
             vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(-thickness ) ;
             vec4 foamColor = vec4(1.0);
-            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (Fspecular) * environmentColor , foamColor , FoamDepthStencil/*0*/ ) , sceneCol , 0.5 )/2.0; //Division by 2 because of gamma correction
+if ( ( Z == 0.0 || Z==1.0 /*|| ( Z != 0.0 && particleDepthStencil.r != 0.0 )*/ )&& ( FoamDepth == 0.0 || ( FoamDepth != 0.0 && FoamDepthStencil.r != 0.0 ) ) )
+{
+FragColor = background ;
+gl_FragDepth = backgroundDepth ;
+}
+else{
+            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (Fspecular) * environmentColor/2.0 , foamColor , FoamDepth/*0*/ ) , sceneCol/2.0 , 0.5 );///2.0; //Division by 2 because of gamma correction
 			FragColor.xyz = pow(FragColor.xyz,vec3(1/gamma));
-	//		FragColor = vec4(FoamDepth);
+}
+			//FragColor = vec4(FoamDepth);
 			//FragColor = vec4(thickness);
 			//** Old rendering
 /*
