@@ -112,7 +112,8 @@ return( ( rs + rp ) / 2.0 ) ;
 			vec3 fromEye = normalize(eyePos);
 			vec4 background = texture(gPosition,TexCoords);
 			float Far = 1.0, Near = 0.1;
-			float backgroundDepth = ( 2.0 * Near ) / ( Far + Near - ( 1.0/*backgroundDepthTexture*/) * ( Far - Near ));
+			float backgroundDepth = ( 2.0 * Near ) / ( Far + Near - ( 1.0/*backgroundDepthTexture*/) * ( Far - Near ));
+
 
 			// calculate lighting
 			vec4 waterColor = vec4(0.2, 0.5, 0.7, 1.0);
@@ -128,35 +129,15 @@ return( ( rs + rp ) / 2.0 ) ;
             float Fspecular = clamp(fresnel( 1.0 , 1.33 , currNorm , fromEye ) , 0.0 ,1.0) ; //To check values
             vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(-thickness ) ;
             vec4 foamColor = vec4(1.0);
-if ( ( Z == 0.0 || Z==1.0 /*|| ( Z != 0.0 && particleDepthStencil.r != 0.0 )*/ )&& ( FoamDepth == 0.0 || ( FoamDepth != 0.0 && FoamDepthStencil.r != 0.0 ) ) )
+			if(FoamDepthStencil.w==1.0) discard;
+if ( ( Z == 0.0 || Z==1.0 /*|| ( Z != 0.0 && particleDepthStencil.r != 0.0 )*/ )&& ( FoamDepth == 0.0 || ( FoamDepth != 0.0 && FoamDepthStencil.r != 0.0 ) ) ) //Still need stencil values
 {
 FragColor = background ;
 gl_FragDepth = backgroundDepth ;
 }
 else{
-            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (Fspecular) * environmentColor/2.0 , foamColor , FoamDepth/*0*/ ) , sceneCol/2.0 , 0.5 );///2.0; //Division by 2 because of gamma correction
+            FragColor = mix(mix( ( lambert + 0.2 ) * absorbColor * ( 1.0 - Fspecular ) + (Fspecular) * environmentColor/2.0 , foamColor , FoamDepthStencil.w/*0*/ ) , sceneCol/2.0 , 0.5 );///2.0; //Division by 2 because of gamma correction
 			FragColor.xyz = pow(FragColor.xyz,vec3(1/gamma));
 }
-			//FragColor = vec4(FoamDepth);
-			//FragColor = vec4(thickness);
-			//** Old rendering
-/*
-   	   //   FragColor = environmentColor;
-			float lightSpecular = 0.25;
-			float materialShininess = 0.3;
-			vec3 I = normalize(fPos-camPos);
-			//float diffuse = max(0.0, dot(lightDir, currNorm));
-			float ratio = 1.00 / 1.33;
-			vec3 R = refract(I, normalize(currNorm), ratio);
-			vec3 R2 = reflect(I, normalize(currNorm));
-
-		   vec3 viewDir = normalize(camPos - fPos);
-           vec3 reflectDir = reflect(-lightDir, currNorm);  
-           float spec = pow(max(dot(viewDir, reflectDir), 0.0), materialShininess);
-           vec3 specular = lightSpecular * spec * texture(skybox, R).rgb;  
-*/
-		    //FragColor = (vec4(texture(skybox, R).rgb, 0.0) * 0.4 + waterColor * 0.2 + vec4(texture(skybox, R2).rgb, 0.0) * 0.4) + vec4(specular,1.0)*0.5 + diffuse;
-			//FragColor = vec4(vec3(Z),1.0);
-			//FragColor = vec4(fNormal, 1.0);
-			//FragColor = thickness;
+		//	FragColor = vec4(FoamDepthStencil.x);
 		}
