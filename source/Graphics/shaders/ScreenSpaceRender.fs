@@ -129,7 +129,7 @@ return( ( rs + rp ) / 2.0 ) ;
             float Fspecular = clamp(fresnel( 1.0 , 1.33 , currNorm , fromEye ) , 0.0 ,1.0) ; //To check values
             vec4 absorbColor = ( vec4( LightIntensity , 1.0 ) * ( ambient + diffuse ) ) * exp(-thickness ) ;
             vec4 foamColor = vec4(1.0);
-			if(FoamDepthStencil.w==1.0) discard;
+		//	if(FoamDepthStencil.x<0.02) discard;
 if ( ( Z == 0.0 || Z==1.0 /*|| ( Z != 0.0 && particleDepthStencil.r != 0.0 )*/ )&& ( FoamDepth == 0.0 || ( FoamDepth != 0.0 && FoamDepthStencil.r != 0.0 ) ) ) //Still need stencil values
 {
 FragColor = background ;

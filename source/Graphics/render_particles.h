@@ -42,7 +42,7 @@ protected:  // methods
 
 	void _initGL();
 	void _drawPoints();
-	GLuint _compileProgram(const char *vsource, const char *fsource), _compileProgramA(const char *vsource, const char *fsource);
+	GLuint _compileProgram(const char *vsource, const char *fsource), _compileProgramGeo(const char *vsource, const char *fsource, const char *gsource), _compileProgramA(const char *vsource, const char *fsource);
 
 protected:  // data
 public:

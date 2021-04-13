@@ -147,5 +147,9 @@
     <None Include="source\Graphics\shaders\ScreenSpaceRender.fs" />
     <None Include="source\Graphics\shaders\Foam.fs" />
     <None Include="source\Graphics\shaders\ParticleRender.vs" />
+    <None Include="source\Graphics\shaders\SPFoam.fs" />
+    <None Include="source\Graphics\shaders\FoamThickness.fs" />
+    <None Include="source\Graphics\shaders\Foam.gs" />
+    <None Include="source\Graphics\shaders\Foam.vs" />
   </ItemGroup>
 </Project>
