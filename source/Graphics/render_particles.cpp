@@ -304,7 +304,12 @@ void ParticleRenderer::ScreenSpaceSet()
 	createQuad();
 	if(RenderMethod==2) BilateralFilter_Use(); 
 	if(RenderMethod==1) CurvatureFlow_Use();
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
 	SetFoam();
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
 	drawCubemap();
 }
 
@@ -318,6 +323,7 @@ void ParticleRenderer::SetFoam() {
 	glUniform1f(FHEIGHT, SCR_HEIGHT);
 	glUniform1f(FWIDTH, SCR_WIDTH);
 	glUniform1f(FScale, m_ParScale);
+	glUniform1i(Frand, rand());
 	glUniform1f(FRadius, m_ParRadius);
 	glUniformMatrix4fv(FProjection, 1, GL_FALSE, Pmatrix);
 	glUniformMatrix4fv(FModelView, 1, GL_FALSE, MVmatrix);
@@ -811,8 +817,9 @@ void ParticleRenderer::_initGL()
 	FWIDTH = glGetUniformLocation(FoamProg, "SCR_WIDTH");
 	FRadius = glGetUniformLocation(FoamProg, "pointScale");
 	FScale = glGetUniformLocation(FoamProg, "pointRadius");
+	Frand = glGetUniformLocation(FoamProg, "rand");
 	//GHEIGHT = glGetUniformLocation(FoamProg, "SCR_HEIGHT");
-
+	
 	glClampColorARB(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
 	glClampColorARB(GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);
 }

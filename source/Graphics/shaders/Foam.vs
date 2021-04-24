@@ -1,7 +1,7 @@
 #version 330
 
 layout( location = 0 ) in vec4 vPosition;
-layout( location = 3 ) in float vWeberNumber;
+layout( location = 3 ) in vec3 vWeberNumber;
 uniform float pointRadius; // point size in world space
 uniform float pointScale;  // scale to calculate size in pixels
 uniform float SCR_HEIGHT;
@@ -10,7 +10,7 @@ uniform mat4 ModelView , Projection;
 out VS_OUT {
  vec4 eyeSpacePos;
  float eyeSpaceRadius;
- float weberNumber;
+ vec3 weberNumber;
 } vs_out;
 
 //out float searchRadius;
