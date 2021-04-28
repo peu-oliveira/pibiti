@@ -221,6 +221,10 @@ __device__ float W(float x, float h){
 	else return 0.0;
 }
 
+__device__ float phiClamp(float I,float Tmin,float Tmax){
+return (min(I,Tmax)-min(I,Tmin))/(Tmax-Tmin);
+}
+
 __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, float4* oldVel, 
 		float4* clr, float* pressure, float* density, float* dyeColor/**/,	uint2* particleHash,  uint* cellStart)
 {
@@ -425,10 +429,14 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 	//* Foam implementation
     float4 NvelDif = make_float4(0.0f); 
 	float4 NposDif = make_float4(0.0f); 
+	float minvThreshold = 5.0f;
+	float maxvThreshold = 20.0f;
 	float vdiff = 0.0f; 
+	float TrappedAirPot = 0.0f;
 	uint gridHash = calcGridHash(gridPos);
 	uint bucketStart = FETCH(cellStart, gridHash);
-	float h = 10.0f;
+	float h = 3.0f;
+    float3 Normal = make_float3(0);
 	 
 	 for(int x=-1;x<2;x++){
 	 for(int y=-1;y<2;y++){
@@ -449,11 +457,45 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 			NvelDif = normalize(vel+vel2); //nvlog error when '-' ??
 			NposDif = normalize(pos+pos2); //nvlog error when '-' ??
 			vdiff += sqrt(dot(vel-vel2,vel-vel2)) * (1.0f-dot(NvelDif,NposDif)) * W(sqrt(dot(pos-pos2,pos-pos2)),h);
+
+			/*
+			Normal.x += (pos.y-pos2.y)*(pos.z-pos2.z);
+			Normal.y += (pos.x-pos2.x)*(pos.z-pos2.z);
+			Normal.z += (pos.y-pos2.y)*(pos.x-pos2.x);
+			*/
 		}
 	}	
 	}}}
-	//          color *= clrV;
-				color = make_float3(vdiff); }	break;
+
+	TrappedAirPot = phiClamp(vdiff,minvThreshold,maxvThreshold);
+
+	/*
+	float3 Normal;
+	float4 pos2 = FETCH(oldPos, index+1); 
+	float4 pos3 = FETCH(oldPos, index-1);
+	float4 U = pos2-pos;
+	float4 V = pos3-pos;
+
+	Normal.x = U.y*V.z - U.z*V.y;
+	Normal.y = U.z*V.x - U.x-V.z;
+	Normal.z = U.x*V.y - U.y*V.x;
+	*/
+	float Iwc = 0;
+
+	float minkThreshold = 0.1f;
+	float maxkThreshold = 1.0f;
+	float kEnergy = par.particleMass*1000*dot(vel,vel)*0.5;
+	float kPot = phiClamp(kEnergy,minkThreshold,maxkThreshold);
+
+	float Kta = 3.0f;
+	float Kwc = 3.0f;
+	float Nd = kPot*(Kta*TrappedAirPot+Kwc*Iwc);
+
+	//color *= clrV;
+
+    color = make_float3(Nd); 
+	
+	}	break;
 
 //*End of modifications
 		case CLR_VelRGB:

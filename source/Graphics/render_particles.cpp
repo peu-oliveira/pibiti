@@ -304,9 +304,10 @@ void ParticleRenderer::ScreenSpaceSet()
 	createQuad();
 	if(RenderMethod==2) BilateralFilter_Use(); 
 	if(RenderMethod==1) CurvatureFlow_Use();
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	glDepthMask(GL_FALSE);
-	glDisable(GL_DEPTH_TEST);
+//	glClear(GL_DEPTH_BUFFER_BIT);
+	//glDepthMask(GL_FALSE);
+	//glDisable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
 	SetFoam();
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);

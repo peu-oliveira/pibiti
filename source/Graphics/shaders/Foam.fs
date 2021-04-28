@@ -37,7 +37,7 @@ vec4 clipspacePos = Projection *fragPos ;
 // Se t up output
 float deviceDepth = clipspacePos.z / clipspacePos.w ;
 float fragDepth = ( ( 2.0f * Near ) / (far + Near - ( deviceDepth * 0.5 + 0.5 ) * (far - Near ) ) ) ;
-particleDepth = vec4 ( vec3 (GweberNumber.x ) , 1.0 - sizeAndAlphaFactor ) ;
+particleDepth = vec4 ( vec3 (1.0 ) , 1.0 - sizeAndAlphaFactor ) ;
 if ( GweberNumber.x >= foamThreshold )
 {
 particleDepth = vec4 ( vec3 (GweberNumber.x ) , 0.0f ) ; //"discard" outputing 1.0
