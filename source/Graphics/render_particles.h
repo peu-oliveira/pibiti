@@ -42,7 +42,7 @@ protected:  // methods
 
 	void _initGL();
 	void _drawPoints();
-	GLuint _compileProgram(const char *vsource, const char *fsource), _compileProgramA(const char *vsource, const char *fsource);
+	GLuint _compileProgram(const char *vsource, const char *fsource), _compileProgramGeo(const char *vsource, const char *fsource, const char *gsource), _compileProgramA(const char *vsource, const char *fsource);
 
 protected:  // data
 public:
@@ -53,7 +53,7 @@ public:
 	int m_numParticles, m_window_w, m_window_h;  float m_fov;
 
 	float m_ParRadius, m_ParScale, m_fDiffuse, m_fAmbient, m_fPower, m_fSteps, m_fHueDiff;
-	GLint m_uLocPRadius[NumProg], m_uLocPScale[NumProg], m_uLocDiffuse, gm_uLocDiffuse, m_uLocAmbient, gm_uLocAmbient, m_uLocPower, gm_uLocPower, m_uLocSteps, m_uLocStepsS, m_uLocHueDiff, gPscale, gPradius, scrW, scrH,FRadius,FScale;
+	GLint m_uLocPRadius[NumProg], m_uLocPScale[NumProg], m_uLocDiffuse, gm_uLocDiffuse, m_uLocAmbient, gm_uLocAmbient, m_uLocPower, gm_uLocPower, m_uLocSteps, m_uLocStepsS, m_uLocHueDiff, gPscale, gPradius, scrW, scrH,FRadius,FScale,Frand;
 	GLint m_uLocPRadius1[NumProg], m_uLocPScale1[NumProg], m_uLocDiffuse1, gm_uLocDiffuse1, m_uLocAmbient1, gm_uLocAmbient1, m_uLocPower1, gm_uLocPower1, m_uLocSteps1, m_uLocStepsS1, m_uLocHueDiff1, scrW1, scrH1;
 	GLint SigmaDomain, KernelCenter,KernelUni[15],camerax,cameray,cameraz, SPcamerax, SPcameray, SPcameraz,SPHEIGHT,SPWIDTH,Projection,ModelView,FHEIGHT,FWIDTH,FProjection,FModelView;
 	GLfloat Pmatrix[16], MVmatrix[16];

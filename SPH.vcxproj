@@ -493,8 +493,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="source\Graphics\shaders\Foam.fs" />
-    <None Include="source\Graphics\shaders\ParticleRender.vs" />
+    <None Include="source\Graphics\shaders\Foam.gs" />
+    <None Include="source\Graphics\shaders\Foam.vs" />
+    <None Include="source\Graphics\shaders\FoamThickness.fs" />
+    <None Include="source\Graphics\shaders\ParticleRender.vs">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="source\Graphics\shaders\ScreenSpaceRender.fs" />
+    <None Include="source\Graphics\shaders\SPFoam.fs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

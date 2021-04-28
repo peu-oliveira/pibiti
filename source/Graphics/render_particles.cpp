@@ -254,7 +254,7 @@ void ParticleRenderer::drawCubemap()
 	glUseProgram(0);
 	glDepthFunc(GL_LESS); // set depth function back to default*/
 }
-//** Steps for curvature flow rendering
+
 void ParticleRenderer::ScreenSpaceSet()
 {
 	glGetFloatv(GL_PROJECTION_MATRIX, Pmatrix);
@@ -288,7 +288,10 @@ void ParticleRenderer::ScreenSpaceSet()
 	glDisable(GL_BLEND);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	SetFoam();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, FoamFB);
+	//SetFoam();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//glDepthMask(GL_FALSE);
 	glEnable(GL_POINT_SPRITE_ARB);
@@ -299,14 +302,19 @@ void ParticleRenderer::ScreenSpaceSet()
 	SCR_WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	SCR_HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	createQuad();
-	if(RenderMethod==2) BilateralFilter_Use(); //**Still not working properly
+	if(RenderMethod==2) BilateralFilter_Use(); 
 	if(RenderMethod==1) CurvatureFlow_Use();
+//	glClear(GL_DEPTH_BUFFER_BIT);
+	//glDepthMask(GL_FALSE);
+	//glDisable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
+	SetFoam();
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
 	drawCubemap();
 }
 
 void ParticleRenderer::SetFoam() {
-	glBindFramebuffer(GL_FRAMEBUFFER, FoamFB);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_POINT_SPRITE_ARB);
 	glTexEnvi(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE_NV);
@@ -316,6 +324,7 @@ void ParticleRenderer::SetFoam() {
 	glUniform1f(FHEIGHT, SCR_HEIGHT);
 	glUniform1f(FWIDTH, SCR_WIDTH);
 	glUniform1f(FScale, m_ParScale);
+	glUniform1i(Frand, rand());
 	glUniform1f(FRadius, m_ParRadius);
 	glUniformMatrix4fv(FProjection, 1, GL_FALSE, Pmatrix);
 	glUniformMatrix4fv(FModelView, 1, GL_FALSE, MVmatrix);
@@ -323,7 +332,6 @@ void ParticleRenderer::SetFoam() {
 	_drawPoints();
 	glUseProgram(0);
 	glDisable(GL_POINT_SPRITE_ARB);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ParticleRenderer::ScreenSpaceRender(bool FB) {
@@ -631,6 +639,48 @@ GLuint ParticleRenderer::_compileProgram(const char *vsource, const char *fsourc
 	return program;
 }
 
+GLuint ParticleRenderer::_compileProgramGeo(const char *vsource, const char *fsource, const char *gsource)
+{
+	GLuint vertexShader;
+	if (vsource)
+	{
+		vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertexShader, 1, &vsource, 0);
+		glCompileShader(vertexShader);
+	}
+
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fsource, 0);
+	glCompileShader(fragmentShader);
+
+	GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+	glShaderSource(geometryShader, 1, &gsource, 0);
+	glCompileShader(geometryShader);
+
+	GLuint program = glCreateProgram();
+
+	if (vsource)
+		glAttachShader(program, vertexShader);
+	glAttachShader(program, fragmentShader);
+	glAttachShader(program, geometryShader);
+
+	glLinkProgram(program);
+
+	// check if program linked
+	GLint success = 0;
+	glGetProgramiv(program, GL_LINK_STATUS, &success);
+
+	if (!success)
+	{
+		char temp[1024];
+		glGetProgramInfoLog(program, 1024, 0, temp);
+		printf("Failed to link program:\n%s\n", temp);
+		glDeleteProgram(program);
+		program = 0;
+	}
+	return program;
+}
+
 GLuint ParticleRenderer::_compileProgramA(const char *vsource, const char *fsource)
 {
 	GLuint vertexShader;
@@ -691,7 +741,7 @@ void ParticleRenderer::_initGL()
 	SkyboxProg = _compileProgram(parseFileToString("source/Graphics/shaders/Cubemap.vs").c_str(), parseFileToString("source/Graphics/shaders/Cubemap.fs").c_str());
 	BFProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/BilateralFilter.fs").c_str());
 	SPRenderProg = _compileProgram(parseFileToString("source/Graphics/shaders/ScreenSpace.vs").c_str(), parseFileToString("source/Graphics/shaders/ScreenSpaceRender.fs").c_str());
-	FoamProg = _compileProgramA(parseFileToString("source/Graphics/shaders/ParticleRender.vs").c_str(), parseFileToString("source/Graphics/shaders/Foam.fs").c_str());
+	FoamProg = _compileProgramGeo(parseFileToString("source/Graphics/shaders/Foam.vs").c_str(), parseFileToString("source/Graphics/shaders/Foam.fs").c_str(), parseFileToString("source/Graphics/shaders/Foam.gs").c_str());
 	//cout << parseFileToString("source/Graphics/shaders/CurvatureFlow.fs").c_str();
 
 	//** Original rendering
@@ -768,8 +818,9 @@ void ParticleRenderer::_initGL()
 	FWIDTH = glGetUniformLocation(FoamProg, "SCR_WIDTH");
 	FRadius = glGetUniformLocation(FoamProg, "pointScale");
 	FScale = glGetUniformLocation(FoamProg, "pointRadius");
+	Frand = glGetUniformLocation(FoamProg, "rand");
 	//GHEIGHT = glGetUniformLocation(FoamProg, "SCR_HEIGHT");
-
+	
 	glClampColorARB(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
 	glClampColorARB(GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);
 }

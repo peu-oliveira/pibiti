@@ -182,7 +182,6 @@ __global__ void integrateD(float4* newPos, float4* newVel, float4* oldPos, float
 	vel += accel;				// v(t+1) = v(t) + a(t) dt
 	vel_eval += accel;	vel_eval *= m_DT/d;
 	pos += vel_eval;	vel_eval = vel;
-
 	///  Leapfrog Integration  ----------------------------
 	/*vnext = (accel + m_Gravity) * m_DT + vel;		// v(t+1/2) = v(t-1/2) + a(t) dt
 	vel_eval = (vel + vnext) * 0.5f;	// v(t+1) = [v(t-1/2) + v(t+1/2)] * 0.5		used to compute forces later
@@ -214,6 +213,17 @@ __global__ void integrateD(float4* newPos, float4* newVel, float4* oldPos, float
 //----------------------------------------------------------------------------------------------------------------------------
 ///  Compute SPH  Force
 //----------------------------------------------------------------------------------------------------------------------------
+
+__device__ float W(float x, float h){
+	if (x<=h){
+	return (1-x)/h;
+	}
+	else return 0.0;
+}
+
+__device__ float phiClamp(float I,float Tmin,float Tmax){
+return (min(I,Tmax)-min(I,Tmin))/(Tmax-Tmin);
+}
 
 __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, float4* oldVel, 
 		float4* clr, float* pressure, float* density, float* dyeColor/**/,	uint2* particleHash,  uint* cellStart)
@@ -415,8 +425,79 @@ __global__ void computeForceD(float4* newPos, float4* newVel, float4* oldPos, fl
 		case CLR_Vel:
 		{	float v = 2.5f * length(make_float3(vel));
 				float clrV = par.brightness + par.contrast * v;		intens = clrV;
-			color *= clrV;  }	break;
 
+	//* Foam implementation
+    float4 NvelDif = make_float4(0.0f); 
+	float4 NposDif = make_float4(0.0f); 
+	float minvThreshold = 5.0f;
+	float maxvThreshold = 20.0f;
+	float vdiff = 0.0f; 
+	float TrappedAirPot = 0.0f;
+	uint gridHash = calcGridHash(gridPos);
+	uint bucketStart = FETCH(cellStart, gridHash);
+	float h = 3.0f;
+    float3 Normal = make_float3(0);
+	 
+	 for(int x=-1;x<2;x++){
+	 for(int y=-1;y<2;y++){
+	 for(int z=-1;z<2;z++){
+	//  iterate over particles in this cell
+	for (uint i=0; i < par.maxParInCell; i++)
+	{
+	 	uint gridHash = calcGridHash(make_int3(gridPos.x+x,gridPos.y+y,gridPos.z+z));
+    	uint bucketStart = FETCH(cellStart, gridHash);   
+		uint index2 = bucketStart + i;
+		uint2 cellData = FETCH(particleHash, index2);
+		if (cellData.x != gridHash)  break;
+
+		if (index2 != index)
+		{
+			float4 vel2 = FETCH(oldVel, index2); 
+			float4 pos2 = FETCH(oldPos, index2);
+			NvelDif = normalize(vel+vel2); //nvlog error when '-' ??
+			NposDif = normalize(pos+pos2); //nvlog error when '-' ??
+			vdiff += sqrt(dot(vel-vel2,vel-vel2)) * (1.0f-dot(NvelDif,NposDif)) * W(sqrt(dot(pos-pos2,pos-pos2)),h);
+
+			/*
+			Normal.x += (pos.y-pos2.y)*(pos.z-pos2.z);
+			Normal.y += (pos.x-pos2.x)*(pos.z-pos2.z);
+			Normal.z += (pos.y-pos2.y)*(pos.x-pos2.x);
+			*/
+		}
+	}	
+	}}}
+
+	TrappedAirPot = phiClamp(vdiff,minvThreshold,maxvThreshold);
+
+	/*
+	float3 Normal;
+	float4 pos2 = FETCH(oldPos, index+1); 
+	float4 pos3 = FETCH(oldPos, index-1);
+	float4 U = pos2-pos;
+	float4 V = pos3-pos;
+
+	Normal.x = U.y*V.z - U.z*V.y;
+	Normal.y = U.z*V.x - U.x-V.z;
+	Normal.z = U.x*V.y - U.y*V.x;
+	*/
+	float Iwc = 0;
+
+	float minkThreshold = 0.1f;
+	float maxkThreshold = 1.0f;
+	float kEnergy = par.particleMass*1000*dot(vel,vel)*0.5;
+	float kPot = phiClamp(kEnergy,minkThreshold,maxkThreshold);
+
+	float Kta = 3.0f;
+	float Kwc = 3.0f;
+	float Nd = kPot*(Kta*TrappedAirPot+Kwc*Iwc);
+
+	//color *= clrV;
+
+    color = make_float3(Nd); 
+	
+	}	break;
+
+//*End of modifications
 		case CLR_VelRGB:
 		{	color = make_float3(0.5f, 0.5f, 0.5f) + par.contrast * 2.5f * make_float3(vel);	}	break;
 
@@ -487,12 +568,10 @@ extern "C"
 	if (deviceCount == 0)  {
 		fprintf(stderr, "Error: no devices supporting CUDA.\n");
 		return false;  }  //exit(EXIT_FAILURE);
-
 	int dev = 0;
 	cutGetCmdLineArgumenti(argc, (const char**)argv, "device", &dev);
 	if (dev > deviceCount-1) dev = deviceCount - 1;
 	cudaDeviceProp p;
-
 	CUDA_SAFE_CALL_NO_SYNC(cudaGetDeviceProperties(&p, dev));
 	if (p.major < 1)  {
 		fprintf(stderr, "Error: device does not support CUDA.\n");
